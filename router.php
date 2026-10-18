@@ -42,7 +42,47 @@ if (strpos($requestUri, '/assets/') === 0) {
         if (isset($mimeTypes[$ext])) {
             header('Content-Type: ' . $mimeTypes[$ext]);
         }
-        readfile($filePath);
+
+        $isHead = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD';
+
+        // Gzip compression for eligible static .css and .js responses only
+        $isEligible = in_array(strtolower($ext), ['css', 'js'], true);
+        if ($isEligible) {
+            header('Vary: Accept-Encoding');
+
+            $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
+            $supportsGzip = false;
+            if (preg_match('/(?:^|,)\s*gzip\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
+                $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
+            } elseif (preg_match('/(?:^|,)\s*\*\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
+                $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
+            }
+
+            $canGzip = $supportsGzip && function_exists('gzencode') && !ini_get('zlib.output_compression');
+            $content = file_get_contents($filePath);
+
+            if ($canGzip) {
+                $compressed = gzencode($content, 6);
+                header('Content-Encoding: gzip');
+                header('Content-Length: ' . strlen($compressed));
+                if (!$isHead) {
+                    echo $compressed;
+                }
+                return true;
+            }
+
+            header('Content-Length: ' . strlen($content));
+            if (!$isHead) {
+                echo $content;
+            }
+            return true;
+        }
+
+        // For non-compressible assets (images, fonts, etc.)
+        header('Content-Length: ' . filesize($filePath));
+        if (!$isHead) {
+            readfile($filePath);
+        }
         return true;
     }
     // If asset not found, return 404
