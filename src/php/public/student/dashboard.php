@@ -97,13 +97,12 @@ $currentPage = 'dashboard';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?> | Test Platform</title>
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0">
-    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 <?= iconSprite() ?>
@@ -905,7 +904,6 @@ function updateThemeUI(theme) {
     }
 })();
 
-// Initialize Lucide icons (script loaded synchronously in <head>)
 
 // Test card expansion
 
@@ -1019,7 +1017,6 @@ testTableRows.forEach(row => {
 
 });
 
-lucide.createIcons();
 </script>
 </body>
 </html>
