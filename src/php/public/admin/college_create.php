@@ -562,7 +562,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     unset($_SESSION['college_draft']);
 
                     flash('success', 'College "' . h($step1['name']) . '" created successfully!');
-                    redirect('/admin/college_dashboard.php?id=' . $collegeId);
+                    redirect('/admin/colleges/' . $collegeId);
 
                 } catch (Exception $e) {
                     $pdo->rollBack();

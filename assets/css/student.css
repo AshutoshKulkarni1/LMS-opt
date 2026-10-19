@@ -30,6 +30,14 @@
   --gray-100:       #101828;
   --black:          #070A14;
 
+  /* ── Core Semantic Theme Aliases ──────────────────────── */
+  --card-bg:        var(--surface-card);
+  --border-color:   var(--gray-15);
+  --text-primary:   var(--gray-100);
+  --text-secondary: var(--gray-60);
+  --primary:        var(--accent);
+  --primary-light:  var(--accent-bg);
+
   /* ── Brand Accents ────────────────────────────────────── */
   --accent:         #4F8CFF;
   --accent-hover:   #3A78F0;
@@ -230,6 +238,14 @@
   --gray-95:        #E8ECF0;
   --gray-100:       #F4F6F8;
 
+  /* ── Dark Semantic Theme Aliases ──────────────────────── */
+  --card-bg:        var(--surface-card);
+  --border-color:   var(--gray-20);
+  --text-primary:   var(--gray-100);
+  --text-secondary: var(--gray-60);
+  --primary:        var(--accent);
+  --primary-light:  var(--accent-bg);
+
   /* ── Dark Brand Accents ───────────────────────────────── */
   --accent-bg:      rgba(79, 140, 255, 0.10);
   --accent-light:   rgba(79, 140, 255, 0.05);
@@ -419,6 +435,34 @@ a {
 a:hover {
   color: var(--accent-hover);
   text-decoration: underline;
+}
+a.stat-card-link,
+a.stat-card-gradient,
+.stat-card-link,
+.stat-card-gradient,
+.stats-row a,
+.analytics-grid a,
+.card-flat a,
+.card a {
+  text-decoration: none !important;
+}
+a.stat-card-link:hover,
+a.stat-card-gradient:hover,
+.stat-card-link:hover,
+.stat-card-gradient:hover,
+.stats-row a:hover,
+.analytics-grid a:hover,
+.card-flat a:hover,
+.card a:hover,
+a.stat-card-link *,
+a.stat-card-gradient *,
+.stat-card-link *,
+.stat-card-gradient *,
+.stats-row a *,
+.analytics-grid a *,
+.card-flat a *,
+.card a * {
+  text-decoration: none !important;
 }
 a:focus-visible {
   outline: var(--ring-width) solid var(--ring-color);
@@ -2614,6 +2658,12 @@ tr {
   gap: var(--space-5);
   margin-bottom: var(--space-6);
 }
+.stat-card-link {
+  display: block;
+  text-decoration: none !important;
+  color: inherit !important;
+  cursor: pointer;
+}
 .stat-card-gradient {
   position: relative;
   border-radius: var(--radius-2xl);
@@ -2625,6 +2675,14 @@ tr {
   cursor: default;
   background: var(--surface-card);
   border: 1px solid var(--glass-border);
+  text-decoration: none !important;
+  color: inherit;
+}
+a.stat-card-gradient {
+  cursor: pointer;
+  display: block;
+  text-decoration: none !important;
+  color: inherit !important;
 }
 .stat-card-gradient::after {
   content: '';
@@ -6103,8 +6161,9 @@ p,
     gap: 16px;
     padding: 22px;
     border-radius: 16px;
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .analysis-stat-icon {
@@ -6116,29 +6175,42 @@ p,
     align-items: center;
     justify-content: center;
 
-    background: var(--primary-light, #eef2ff);
+    background: var(--primary-light);
+    color: var(--primary);
 }
 
 .analysis-stat-value {
     font-size: 26px;
     font-weight: 700;
+    color: var(--text-primary);
 }
 
 .analysis-stat-label {
     margin-top: 4px;
     font-size: 14px;
-    opacity: 0.65;
+    color: var(--text-secondary);
 }
 
 
-.analysis-section {
+div.analysis-section {
     margin-bottom: 24px;
     padding: 24px;
-
     border-radius: 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
 
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e5e7eb);
+/* In test-analysis, section.analysis-section is a section grouping containing subcards */
+section.analysis-section,
+.analysis-section:has(.analysis-chart-grid),
+.analysis-section:has(.analysis-table-card),
+.analysis-section:has(.analysis-section-header) {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    margin-top: 32px;
 }
 
 
@@ -6183,14 +6255,16 @@ p,
 .results-table td {
     padding: 15px 14px;
     text-align: left;
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 
 .results-table th {
     font-size: 13px;
     font-weight: 600;
-    opacity: 0.65;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
 }
 
 
@@ -6201,6 +6275,7 @@ p,
 
 .percentage-value {
     font-weight: 700;
+    color: var(--accent);
 }
 
 
@@ -6213,12 +6288,14 @@ p,
 
     font-size: 13px;
     font-weight: 600;
+    color: var(--accent);
 }
 
 
 .empty-state {
     text-align: center;
     padding: 50px 20px;
+    color: var(--text-secondary);
 }
 
 
@@ -6230,12 +6307,13 @@ p,
 
 .empty-state h3 {
     margin: 0 0 8px;
+    color: var(--text-primary);
 }
 
 
 .empty-state p {
     margin: 0;
-    opacity: 0.6;
+    color: var(--text-secondary);
 }
 
 
@@ -6254,8 +6332,9 @@ p,
     padding: 24px;
 
     border-radius: 16px;
-
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .best-result-info {

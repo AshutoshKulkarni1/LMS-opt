@@ -83,8 +83,8 @@ $currentPage = 'results';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?> | Test Platform</title>
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/chatbot.css') ? filemtime(__DIR__ . '/../../../../assets/css/chatbot.css') : time() ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <style>
@@ -95,6 +95,33 @@ $currentPage = 'results';
             font-display: swap;
             src: url('<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2') format('woff2');
             unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+
+        a.stat-card-link,
+        a.stat-card-gradient,
+        .stat-card-link,
+        .stat-card-gradient,
+        .stats-row a {
+            text-decoration: none !important;
+            color: inherit !important;
+        }
+
+        a.stat-card-link:hover,
+        a.stat-card-gradient:hover,
+        .stat-card-link:hover,
+        .stat-card-gradient:hover,
+        .stats-row a:hover,
+        a.stat-card-link:focus,
+        a.stat-card-gradient:focus,
+        .stat-card-link:focus,
+        .stat-card-gradient:focus,
+        .stats-row a:focus,
+        a.stat-card-link *,
+        a.stat-card-gradient *,
+        .stat-card-link *,
+        .stat-card-gradient *,
+        .stats-row a * {
+            text-decoration: none !important;
         }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=swap">
@@ -121,7 +148,7 @@ $currentPage = 'results';
 
                 <!-- Summary Stats -->
                 <div class="stats-row">
-                    <a href="result-details.php?type=evaluated" class="stat-card-link">
+                    <a href="result-details?type=evaluated" class="stat-card-link">
     <div class="stat-card-gradient stat-card-total">
         <div class="stat-card-icon"><?= icon('chart', 24) ?></div>
         <div class="stat-card-value"><?= $totalEvaluated ?></div>
@@ -130,7 +157,7 @@ $currentPage = 'results';
         <div class="stat-card-arrow"><?= icon('arrow-right', 14) ?></div>
     </div>
 </a>
-                    <a href="result-details.php?type=average" class="stat-card-link">
+                    <a href="result-details?type=average" class="stat-card-link">
     <div class="stat-card-gradient stat-card-completed">
         <div class="stat-card-icon">
             <?= icon('star', 24) ?>
@@ -153,7 +180,7 @@ $currentPage = 'results';
         </div>
     </div>
 </a>
-                    <a href="result-details.php?type=highest" class="stat-card-link">
+                    <a href="result-details?type=highest" class="stat-card-link">
     <div class="stat-card-gradient stat-card-pending">
         <div class="stat-card-icon">
             <?= icon('graph', 24) ?>
@@ -178,7 +205,7 @@ $currentPage = 'results';
 </a>
                     <?php if ($pendingCount > 0): ?>
 
-<a href="result-details.php?type=pending" class="stat-card-link">
+<a href="result-details?type=pending" class="stat-card-link">
     <div
         class="stat-card-gradient stat-card-completed"
         style="--grad:#826A00,#B8860B;"
@@ -370,6 +397,7 @@ function toggleTheme() {
     const newTheme = isDark ? 'light' : 'dark';
     html.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000;SameSite=Lax';
     updateThemeUI(newTheme);
 }
 function updateThemeUI(theme) {
@@ -380,10 +408,11 @@ function updateThemeUI(theme) {
     });
 }
 (function() {
-    const saved = localStorage.getItem('theme');
+    const saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2];
     if (saved) {
         document.documentElement.setAttribute('data-theme', saved);
         updateThemeUI(saved);
+    }
 })();
 </script>
 </body>

@@ -13,30 +13,37 @@ define('DB_ENV', env('DB_ENV', 'local')); // 'local' or 'production'
 // Change to your local timezone if different.
 date_default_timezone_set('Asia/Kolkata');
 
-if (DB_ENV === 'production') {
-    // Production settings — ALL values injected via environment (.env / platform vars)
-    define('DB_HOST', env('DB_HOST', '127.0.0.1'));
-    define('DB_PORT', env('DB_PORT', '3306'));
-    define('DB_NAME', env('DB_NAME', 'test_platform'));
-    define('DB_USER', env('DB_USER', 'root'));
-    define('DB_PASS', env('DB_PASS', ''));
+// Configure production vs local error handling and logging
+$isProduction = (env('APP_ENV', DB_ENV) === 'production');
+if ($isProduction) {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+    ini_set('log_errors', '1');
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 } else {
-    // Local settings — values come from .env so nothing sensitive is in source
-    define('DB_HOST', env('DB_HOST', '127.0.0.1'));
-    define('DB_PORT', env('DB_PORT', '3306'));
-    define('DB_NAME', env('DB_NAME', 'test_platform'));
-    define('DB_USER', env('DB_USER', 'root'));
-    define('DB_PASS', env('DB_PASS', ''));
+    // In local development, respect APP_DEBUG or default to safe logging
+    $debug = env('APP_DEBUG', 'false') === 'true';
+    ini_set('display_errors', $debug ? '1' : '0');
+    ini_set('display_startup_errors', $debug ? '1' : '0');
+    ini_set('log_errors', '1');
+    error_reporting(E_ALL);
 }
 
-define('PYTHON_API_URL', 'http://127.0.0.1:5000');
+// Database credentials — ALL values come from .env / platform environment variables
+define('DB_HOST', env('DB_HOST', '127.0.0.1'));
+define('DB_PORT', env('DB_PORT', '3306'));
+define('DB_NAME', env('DB_NAME', 'test_platform'));
+define('DB_USER', env('DB_USER', 'root'));
+define('DB_PASS', env('DB_PASS', ''));
+
+define('PYTHON_API_URL', env('PYTHON_API_URL', 'http://127.0.0.1:5000'));
 
 /*
  * BASE_URL: URL prefix for all redirects and links.
  * - PHP built-in server (cli-server): empty string — doc root is public/
  * - XAMPP / Apache: '/test-platform/src/php/public'
  */
-if (php_sapi_name() === 'cli-server') {
+if (php_sapi_name() === 'cli-server' || php_sapi_name() === 'cli') {
     define('BASE_URL', '');
     define('ASSETS_URL', '/assets');
 } else {
@@ -52,11 +59,21 @@ function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
         $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ]);
+        try {
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES   => false,
+            ]);
+        } catch (PDOException $e) {
+            // Server-side logging without credentials
+            error_log('Database connection failed: ' . $e->getMessage());
+            if (ini_get('display_errors') === '1') {
+                throw $e;
+            }
+            http_response_code(500);
+            die('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Service Unavailable</title><style>body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}.c{background:#1e293b;padding:32px;border-radius:12px;border:1px solid #334155;text-align:center;max-width:440px;box-shadow:0 10px 25px rgba(0,0,0,0.5);}h2{margin-top:0;font-size:20px;}p{color:#94a3b8;font-size:14px;line-height:1.5;}</style></head><body><div class="c"><h2>Service Temporarily Unavailable</h2><p>Unable to establish a database connection. Please try again later or contact the administrator.</p></div></body></html>');
+        }
     }
     return $pdo;
 }
@@ -75,13 +92,15 @@ if (!function_exists('__registerNotificationHandlers')) {
         $interesting = [E_ERROR, E_WARNING, E_USER_ERROR, E_USER_WARNING, E_RECOVERABLE_ERROR];
         if (!in_array($errno, $interesting, true)) return false;
         if (function_exists('notifyAdmin')) {
-            notifyAdmin('system', 'PHP Error [' . $errno . ']', $errstr . ' — ' . basename($errfile) . ':' . $errline);
+            $safeMsg = function_exists('sanitizeSensitiveString') ? sanitizeSensitiveString($errstr) : $errstr;
+            notifyAdmin('system', 'PHP Error [' . $errno . ']', $safeMsg . ' — ' . basename($errfile) . ':' . $errline);
         }
         return false; // keep default handler behavior
     });
     set_exception_handler(function (Throwable $e): void {
         if (function_exists('notifyAdmin')) {
-            notifyAdmin('system', 'Uncaught Exception', $e->getMessage() . ' — ' . basename($e->getFile()) . ':' . $e->getLine());
+            $safeMsg = function_exists('sanitizeSensitiveString') ? sanitizeSensitiveString($e->getMessage()) : $e->getMessage();
+            notifyAdmin('system', 'Uncaught Exception', $safeMsg . ' — ' . basename($e->getFile()) . ':' . $e->getLine());
         }
     });
 }

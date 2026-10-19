@@ -44,15 +44,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($result['success']) {
                 // Session is already written and closed — redirect is lock-free.
                 if ($role === 'admin') {
-                    header('Location: ' . BASE_URL . '/admin/dashboard.php');
+                    header('Location: ' . BASE_URL . '/admin/dashboard');
                 } else {
-                    header('Location: ' . BASE_URL . '/student/dashboard.php');
+                    header('Location: ' . BASE_URL . '/student/dashboard');
                 }
                 exit;
             } else {
                 $error = $result['error'];
                 if (!empty($result['not_verified'])) {
                     $verifySid = (int)$result['student_id'];
+                    // Store pending verification challenge securely in server session
+                    $_SESSION['pending_verification'] = [
+                        'student_id'   => $verifySid,
+                        'email'        => $email,
+                        'attempts'     => 0,
+                        'last_sent_at' => 0,
+                    ];
                 }
                 // On failure the session is still open (auth functions don't close
                 // it on error) — we need to close it before rendering HTML.
@@ -118,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 1a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm0 9.5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zM10 6a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0v-4A.5.5 0 0 1 10 6z"/></svg>
                 <span><?= h($error) ?>
                     <?php if ($verifySid > 0): ?>
-                        <br><a href="<?= BASE_URL ?>/verify-otp.php?student_id=<?= $verifySid ?>&email=<?= urlencode(h($_POST['email'] ?? '')) ?>" class="text-accent" style="text-decoration:underline;margin-top:4px;display:inline-block;">Verify email now</a>
+                        <br><a href="<?= BASE_URL ?>/verify-otp" class="text-accent" style="text-decoration:underline;margin-top:4px;display:inline-block;">Verify email now</a>
                     <?php endif; ?>
                 </span>
             </div>
@@ -154,8 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="auth-footer">
             Don't have an account?
-            <a href="signup.php">Register here</a>
-            <a href="guest.php" class="auth-footer-link">Have a guest link? Click here</a>
+            <a href="<?= BASE_URL ?>/signup">Register here</a>
+            <a href="<?= BASE_URL ?>/guest" class="auth-footer-link">Have a guest link? Click here</a>
         </div>
     </div>
 </body>

@@ -5,11 +5,11 @@ require_once __DIR__ . '/../includes/helpers.php';
 startSession();
 
 if (isAdmin()) {
-    redirect('/admin/dashboard.php');
+    redirect('/admin/dashboard');
 } elseif (isStudent()) {
-    redirect('/student/dashboard.php');
+    redirect('/student/dashboard');
 } elseif (isset($_SESSION['guest_token'])) {
-    redirect('/student/test.php');
+    redirect('/student/test');
 }
 // Otherwise show login
-redirect('/login.php');
+redirect('/login');

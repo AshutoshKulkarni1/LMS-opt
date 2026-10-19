@@ -250,8 +250,8 @@ $currentPage = 'test-analysis';
     <title><?= h($pageTitle) ?> | Test Platform</title>
 
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/chatbot.css') ? filemtime(__DIR__ . '/../../../../assets/css/chatbot.css') : time() ?>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -265,6 +265,165 @@ $currentPage = 'test-analysis';
             src: url('<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2') format('woff2');
             unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
         }
+
+        /* ─── Test Analysis Page Theme Guarantees ─────────── */
+        section.analysis-section {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            margin-top: 32px;
+            margin-bottom: 32px;
+        }
+
+        .analysis-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-section-header h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .analysis-section-header p {
+            margin: 6px 0 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .analysis-average {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .analysis-average-value {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--accent);
+        }
+
+        .analysis-average-label {
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .analysis-card {
+            background: var(--surface-card, #151B26) !important;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+            border-radius: 18px !important;
+            padding: 24px !important;
+            box-shadow: var(--shadow-sm);
+        }
+
+        [data-theme="light"] .analysis-card,
+        html:not([data-theme="dark"]) .analysis-card {
+            background: #FFFFFF !important;
+            border-color: #DAE0E8 !important;
+        }
+
+        [data-theme="dark"] .analysis-card {
+            background: #151B26 !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: none !important;
+        }
+
+        .analysis-card-header h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary) !important;
+        }
+
+        .analysis-card-header p {
+            margin: 5px 0 0;
+            color: var(--text-secondary) !important;
+            font-size: 13px;
+        }
+
+        .analysis-table-card {
+            background: var(--surface-card, #151B26) !important;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+            border-radius: 18px !important;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden !important;
+        }
+
+        [data-theme="light"] .analysis-table-card,
+        html:not([data-theme="dark"]) .analysis-table-card {
+            background: #FFFFFF !important;
+            border-color: #DAE0E8 !important;
+        }
+
+        [data-theme="dark"] .analysis-table-card {
+            background: #151B26 !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: none !important;
+        }
+
+        .analysis-table th {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary) !important;
+            background: var(--bg-secondary, #0E1117) !important;
+            border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+            white-space: nowrap;
+        }
+
+        [data-theme="light"] .analysis-table th,
+        html:not([data-theme="dark"]) .analysis-table th {
+            background: #F0F2F5 !important;
+            color: #667085 !important;
+            border-bottom-color: #DAE0E8 !important;
+        }
+
+        .analysis-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+            font-size: 14px;
+            white-space: nowrap;
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="light"] .analysis-table td,
+        html:not([data-theme="dark"]) .analysis-table td {
+            border-bottom-color: #DAE0E8 !important;
+            color: #101828 !important;
+        }
+
+        .analysis-table tbody tr:hover {
+            background: var(--surface-hover, #1C2433) !important;
+        }
+
+        [data-theme="light"] .analysis-table tbody tr:hover,
+        html:not([data-theme="dark"]) .analysis-table tbody tr:hover {
+            background: #F8FAFD !important;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            background: transparent !important;
+        }
+
+        .chart-container canvas {
+            background: transparent !important;
+        }
+
+        .chart-container-small {
+            height: 320px;
+        }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -276,7 +435,7 @@ $currentPage = 'test-analysis';
 
 <?php include __DIR__ . '/../../includes/student_header.php'; ?>
 
-<main class="student-main">
+<div class="student-main">
 
     <!-- Page Header -->
     <div class="welcome-section">
@@ -569,269 +728,280 @@ $currentPage = 'test-analysis';
 
     </section>
 
-</main>
+</div>
 <?php include __DIR__ . '/../../includes/student_footer.php'; ?>
 
 <script>
+let scoreChartInstance = null;
+let questionChartInstance = null;
+let pciChartInstance = null;
+
+function getChartThemeColors(isDark) {
+    return {
+        text: isDark ? '#99A2AD' : '#667085',
+        grid: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
+        tooltipBg: isDark ? 'rgba(21, 27, 38, 0.95)' : 'rgba(16, 24, 40, 0.95)',
+        tooltipTitle: isDark ? '#F4F6F8' : '#FFFFFF',
+        tooltipBody: isDark ? '#D6DCE4' : '#F4F6F8',
+        barBg: isDark ? 'rgba(108, 160, 255, 0.85)' : 'rgba(79, 140, 255, 0.85)',
+        barHover: isDark ? '#4F8CFF' : '#3A78F0',
+        unanswered: isDark ? '#3D4B64' : '#CBD2DC',
+        pciLine: isDark ? '#6CA0FF' : '#4F8CFF',
+        pciPointBg: isDark ? '#6CA0FF' : '#4F8CFF',
+        pciPointBorder: isDark ? '#151B26' : '#FFFFFF'
+    };
+}
+
+function applyChartTheme(isDark) {
+    const c = getChartThemeColors(isDark);
+    if (scoreChartInstance) {
+        if (scoreChartInstance.options.scales && scoreChartInstance.options.scales.x) {
+            scoreChartInstance.options.scales.x.ticks.color = c.text;
+            scoreChartInstance.options.scales.x.grid.color = c.grid;
+        }
+        if (scoreChartInstance.options.scales && scoreChartInstance.options.scales.y) {
+            scoreChartInstance.options.scales.y.ticks.color = c.text;
+            scoreChartInstance.options.scales.y.grid.color = c.grid;
+        }
+        if (scoreChartInstance.data.datasets && scoreChartInstance.data.datasets[0]) {
+            scoreChartInstance.data.datasets[0].backgroundColor = c.barBg;
+            scoreChartInstance.data.datasets[0].hoverBackgroundColor = c.barHover;
+        }
+        scoreChartInstance.update();
+    }
+
+    if (questionChartInstance) {
+        if (questionChartInstance.options.plugins && questionChartInstance.options.plugins.legend) {
+            questionChartInstance.options.plugins.legend.labels.color = c.text;
+        }
+        if (questionChartInstance.data.datasets && questionChartInstance.data.datasets[0]) {
+            questionChartInstance.data.datasets[0].backgroundColor = [
+                '#22C55E',
+                '#EF4444',
+                c.unanswered
+            ];
+        }
+        questionChartInstance.update();
+    }
+
+    if (pciChartInstance) {
+        if (pciChartInstance.options.scales && pciChartInstance.options.scales.x) {
+            pciChartInstance.options.scales.x.ticks.color = c.text;
+            pciChartInstance.options.scales.x.grid.color = c.grid;
+        }
+        if (pciChartInstance.options.scales && pciChartInstance.options.scales.y) {
+            pciChartInstance.options.scales.y.ticks.color = c.text;
+            pciChartInstance.options.scales.y.grid.color = c.grid;
+        }
+        if (pciChartInstance.data.datasets && pciChartInstance.data.datasets[0]) {
+            pciChartInstance.data.datasets[0].borderColor = c.pciLine;
+            pciChartInstance.data.datasets[0].pointBackgroundColor = c.pciPointBg;
+            pciChartInstance.data.datasets[0].pointBorderColor = c.pciPointBorder;
+        }
+        pciChartInstance.update();
+    }
+}
+
 function toggleTheme() {
     const html = document.documentElement;
-
     const isDark = html.getAttribute('data-theme') === 'dark';
     const newTheme = isDark ? 'light' : 'dark';
 
     html.setAttribute('data-theme', newTheme);
-
     localStorage.setItem('theme', newTheme);
+    document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000';
 
     updateThemeUI(newTheme);
+    applyChartTheme(newTheme === 'dark');
 }
 
 function updateThemeUI(theme) {
-
     const label = document.getElementById('themeLabel');
-
     if (label) {
-        label.textContent =
-            theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+        label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
     }
-
     document.querySelectorAll('.theme-icon').forEach(el => {
-        el.textContent =
-            theme === 'dark' ? 'light_mode' : 'dark_mode';
+        el.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
     });
 }
 
-
 // Restore saved theme
 (function() {
-
     const saved = localStorage.getItem('theme');
-
     if (saved) {
         document.documentElement.setAttribute('data-theme', saved);
         updateThemeUI(saved);
     }
-
 })();
 
 // ============================================================
 // ANALYSIS CHARTS
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-const scoreChartData = <?= json_encode($scoreChartData) ?>;
-const questionChartData = <?= json_encode($questionChartData) ?>;
-const pciChartData = <?= json_encode($pciChartData) ?>;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const c = getChartThemeColors(isDark);
 
+    const scoreChartData = <?= json_encode($scoreChartData) ?>;
+    const questionChartData = <?= json_encode($questionChartData) ?>;
+    const pciChartData = <?= json_encode($pciChartData) ?>;
 
-// ------------------------------------------------------------
-// Score by Test
-// ------------------------------------------------------------
-
-const scoreCanvas = document.getElementById('scoreChart');
-
-if (scoreCanvas && scoreChartData.length > 0) {
-
-    new Chart(scoreCanvas, {
-
-        type: 'bar',
-
-        data: {
-
-            labels: scoreChartData.map(item => item.test),
-
-            datasets: [{
-                label: 'Score (%)',
-
-                data: scoreChartData.map(
-                    item => item.percentage
-                ),
-
-                borderWidth: 0,
-
-                borderRadius: 8
-            }]
-
-        },
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            scales: {
-
-                y: {
-
-                    beginAtZero: true,
-
-                    max: 100,
-
-                    ticks: {
-                        callback: value => value + '%'
-                    }
-
-                }
-
+    // ------------------------------------------------------------
+    // Score by Test
+    // ------------------------------------------------------------
+    const scoreCanvas = document.getElementById('scoreChart');
+    if (scoreCanvas && scoreChartData.length > 0) {
+        scoreChartInstance = new Chart(scoreCanvas, {
+            type: 'bar',
+            data: {
+                labels: scoreChartData.map(item => item.test),
+                datasets: [{
+                    label: 'Score (%)',
+                    data: scoreChartData.map(item => item.percentage),
+                    backgroundColor: c.barBg,
+                    hoverBackgroundColor: c.barHover,
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
             },
-
-            plugins: {
-
-                legend: {
-                    display: false
-                },
-
-                tooltip: {
-
-                    callbacks: {
-
-                        label: function(context) {
-
-                            return context.parsed.y + '%';
-
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: c.grid },
+                        ticks: {
+                            color: c.text,
+                            font: { family: 'Inter', size: 12 }
                         }
-
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: c.grid },
+                        ticks: {
+                            color: c.text,
+                            font: { family: 'Inter', size: 12 },
+                            callback: value => value + '%'
+                        }
                     }
-
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: c.tooltipBg,
+                        titleColor: c.tooltipTitle,
+                        bodyColor: c.tooltipBody,
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + '%';
+                            }
+                        }
+                    }
                 }
-
             }
+        });
+    }
 
-        }
-
-    });
-
-}
-
-
-// ------------------------------------------------------------
-// Question Performance
-// ------------------------------------------------------------
-
-const questionCanvas =
-    document.getElementById('questionChart');
-
-if (questionCanvas) {
-
-    new Chart(questionCanvas, {
-
-        type: 'doughnut',
-
-        data: {
-
-            labels: questionChartData.map(
-                item => item.label
-            ),
-
-            datasets: [{
-
-                data: questionChartData.map(
-                    item => item.value
-                ),
-
-                borderWidth: 0
-
-            }]
-
-        },
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            cutout: '65%',
-
-            plugins: {
-
-                legend: {
-
-                    position: 'bottom'
-
-                }
-
-            }
-
-        }
-
-    });
-
-}
-
-
-// ------------------------------------------------------------
-// PCI by Test
-// ------------------------------------------------------------
-
-const pciCanvas =
-    document.getElementById('pciChart');
-
-if (pciCanvas && pciChartData.length > 0) {
-
-    new Chart(pciCanvas, {
-
-        type: 'line',
-
-        data: {
-
-            labels: pciChartData.map(
-                item => item.test
-            ),
-
-            datasets: [{
-
-                label: 'PCI',
-
-                data: pciChartData.map(
-                    item => item.pci
-                ),
-
-                borderWidth: 3,
-
-                tension: 0.35,
-
-                fill: false,
-
-                pointRadius: 5,
-
-                pointHoverRadius: 7
-
-            }]
-
-        },
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            scales: {
-
-                y: {
-
-                    beginAtZero: true,
-
-                    max: 100
-
-                }
-
+    // ------------------------------------------------------------
+    // Question Performance
+    // ------------------------------------------------------------
+    const questionCanvas = document.getElementById('questionChart');
+    if (questionCanvas) {
+        questionChartInstance = new Chart(questionCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: questionChartData.map(item => item.label),
+                datasets: [{
+                    data: questionChartData.map(item => item.value),
+                    backgroundColor: ['#22C55E', '#EF4444', c.unanswered],
+                    borderWidth: 0
+                }]
             },
-
-            plugins: {
-
-                legend: {
-                    display: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: c.text,
+                            font: { family: 'Inter', size: 12 },
+                            padding: 16
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: c.tooltipBg,
+                        titleColor: c.tooltipTitle,
+                        bodyColor: c.tooltipBody,
+                        padding: 12,
+                        cornerRadius: 8
+                    }
                 }
-
             }
+        });
+    }
 
-        }
-
-    });
-
-}
+    // ------------------------------------------------------------
+    // PCI by Test
+    // ------------------------------------------------------------
+    const pciCanvas = document.getElementById('pciChart');
+    if (pciCanvas && pciChartData.length > 0) {
+        pciChartInstance = new Chart(pciCanvas, {
+            type: 'line',
+            data: {
+                labels: pciChartData.map(item => item.test),
+                datasets: [{
+                    label: 'PCI',
+                    data: pciChartData.map(item => item.pci),
+                    borderColor: c.pciLine,
+                    backgroundColor: 'rgba(79, 140, 255, 0.08)',
+                    borderWidth: 3,
+                    tension: 0.35,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: c.pciPointBg,
+                    pointBorderColor: c.pciPointBorder,
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: c.grid },
+                        ticks: {
+                            color: c.text,
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: c.grid },
+                        ticks: {
+                            color: c.text,
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: c.tooltipBg,
+                        titleColor: c.tooltipTitle,
+                        bodyColor: c.tooltipBody,
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 

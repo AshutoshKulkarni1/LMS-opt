@@ -1,79 +1,114 @@
 <?php
 /**
  * OTP Verification Page.
- * Student is redirected here after signup to verify their email.
+ * Student verification is bound securely to the server-side session.
  */
 require_once __DIR__ . '/../includes/session.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/helpers.php';
 startSession();
 
-// If already verified + logged in, redirect
-if (isStudent()) { redirect('/student/dashboard.php'); }
-
-$error = '';
-$success = '';
-$studentId = (int)($_GET['student_id'] ?? ($_POST['student_id'] ?? 0));
-$email = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
-$otpDev = $_GET['otp_dev'] ?? ''; // Only shown in dev mode
-
-if ($studentId <= 0 || empty($email)) {
-    // No student info — redirect to signup
-    redirect('/signup.php');
+// If already verified + logged in, redirect to dashboard
+if (isStudent()) {
+    redirect('/student/dashboard');
 }
 
-// Handle OTP verification POST
+// Ensure verification challenge is bound to server session
+$pending = $_SESSION['pending_verification'] ?? null;
+if (!$pending || empty($pending['student_id']) || empty($pending['email'])) {
+    // No active verification in session — redirect to login
+    redirect('/login');
+}
+
+$studentId = (int)$pending['student_id'];
+$email     = (string)$pending['email'];
+$error     = '';
+$success   = '';
+
+// Check student record in database
+$studentName = $pending['name'] ?? '';
+try {
+    $pdo = getDB();
+    $stmt = $pdo->prepare("SELECT name, otp_hash FROM unverified_students WHERE id = ?");
+    $stmt->execute([$studentId]);
+    $unverified = $stmt->fetch();
+
+    if ($unverified) {
+        if (empty($studentName)) {
+            $studentName = $unverified['name'];
+            $_SESSION['pending_verification']['name'] = $studentName;
+        }
+    } else {
+        // Check if student was already verified
+        $stmt = $pdo->prepare("SELECT name FROM students WHERE id = ?");
+        $stmt->execute([$studentId]);
+        $verified = $stmt->fetch();
+        if ($verified) {
+            unset($_SESSION['pending_verification']);
+            $studentName = $verified['name'];
+            $success = 'Email already verified! You can sign in now.';
+        } else {
+            unset($_SESSION['pending_verification']);
+            redirect('/signup');
+        }
+    }
+} catch (Exception $e) {
+    error_log('Error checking pending student: ' . $e->getMessage());
+}
+
+// Calculate cooldown
+$lastSentAt = (int)($_SESSION['pending_verification']['last_sent_at'] ?? 0);
+$cooldownRemaining = max(0, 60 - (time() - $lastSentAt));
+
+// Handle OTP verification / resend POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if (!validateCsrfToken()) {
         $error = 'Invalid form submission. Please refresh and try again.';
     } elseif ($_POST['action'] === 'verify') {
-        $otp = trim($_POST['otp'] ?? '');
-        if (!preg_match('/^\d{6}$/', $otp)) {
-            $error = 'Please enter a valid 6-digit OTP.';
+        $attempts = (int)($_SESSION['pending_verification']['attempts'] ?? 0);
+
+        if ($attempts >= 5) {
+            invalidateStudentOtp($studentId);
+            $error = 'Maximum verification attempts (5) reached. This OTP has been invalidated. Please request a new OTP.';
         } else {
-            $result = verifyStudentOtp($studentId, $otp);
-            if ($result['success']) {
-                $success = 'Email verified successfully! You can now sign in.';
+            $otp = trim($_POST['otp'] ?? '');
+            if (!preg_match('/^\d{6}$/', $otp)) {
+                $error = 'Please enter a valid 6-digit OTP code.';
             } else {
-                $error = $result['error'] ?? 'Verification failed. Please try again.';
+                $_SESSION['pending_verification']['attempts'] = $attempts + 1;
+                $newAttempts = $_SESSION['pending_verification']['attempts'];
+
+                $result = verifyStudentOtp($studentId, $otp);
+                if ($result['success']) {
+                    unset($_SESSION['pending_verification']);
+                    session_regenerate_id(true);
+                    $success = 'Email verified successfully! You can now sign in.';
+                } else {
+                    if ($newAttempts >= 5) {
+                        invalidateStudentOtp($studentId);
+                        $error = 'Maximum attempts reached. This OTP has been invalidated. Please request a new OTP.';
+                    } else {
+                        $remaining = 5 - $newAttempts;
+                        $error = ($result['error'] ?? 'Invalid OTP.') . " ($remaining attempt" . ($remaining === 1 ? '' : 's') . " remaining)";
+                    }
+                }
             }
         }
     } elseif ($_POST['action'] === 'resend') {
-        $result = resendStudentOtp($studentId);
-        if ($result['success']) {
-            $success = 'A new OTP has been sent to your email.';
-            if (defined('MAIL_DEV_MODE') && MAIL_DEV_MODE) {
-                // In dev mode, show the OTP from the log
-                $otpDev = $result['otp'] ?? '(check storage/logs/otp.log)';
-            }
+        if ($cooldownRemaining > 0) {
+            $error = "Please wait {$cooldownRemaining} seconds before requesting a new OTP.";
         } else {
-            $error = $result['error'] ?? 'Failed to resend OTP. Please try again.';
+            $result = resendStudentOtp($studentId);
+            if ($result['success']) {
+                $_SESSION['pending_verification']['last_sent_at'] = time();
+                $_SESSION['pending_verification']['attempts'] = 0; // Reset attempts for new challenge
+                $cooldownRemaining = 60;
+                $success = 'A new OTP has been sent to your email.';
+            } else {
+                $error = $result['error'] ?? 'Failed to resend OTP. Please try again.';
+            }
         }
     }
-}
-
-// Get student name for greeting
-$studentName = '';
-try {
-    $pdo = getDB();
-    // Check unverified_students first
-    $stmt = $pdo->prepare("SELECT name FROM unverified_students WHERE id = ?");
-    $stmt->execute([$studentId]);
-    $s = $stmt->fetch();
-    if ($s) {
-        $studentName = $s['name'];
-    } else {
-        // Possibly already verified — check students table
-        $stmt = $pdo->prepare("SELECT name FROM students WHERE id = ?");
-        $stmt->execute([$studentId]);
-        $s = $stmt->fetch();
-        if ($s) {
-            $studentName = $s['name'];
-            $success = 'Email already verified! You can sign in now.';
-        }
-    }
-} catch (Exception $e) {
-    // Ignore
 }
 ?><!DOCTYPE html>
 <html lang="en">
@@ -96,7 +131,7 @@ try {
 </head>
 <body class="auth-page">
 
-    <!-- Hero Section (hidden mobile, visible tablet+) -->
+    <!-- Hero Section -->
     <div class="auth-hero">
         <div class="hero-logo">T</div>
         <div class="hero-text">
@@ -133,47 +168,24 @@ try {
         <?php if ($error): ?>
             <div class="auth-alert error">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 1a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm0 9.5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zM10 6a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0v-4A.5.5 0 0 1 10 6z"/></svg>
-                <span><?= h($error) ?>
-                    <?php if (strpos($error, 'expired') !== false): ?>
-                        <form method="POST" style="margin-top:8px;">
-                            <?= csrfField() ?>
-                            <input type="hidden" name="student_id" value="<?= $studentId ?>">
-                            <input type="hidden" name="email" value="<?= h($email) ?>">
-                            <input type="hidden" name="action" value="resend">
-                            <button type="submit" class="btn btn-sm btn-secondary">Resend OTP</button>
-                        </form>
-                    <?php endif; ?>
-                </span>
+                <span><?= h($error) ?></span>
             </div>
         <?php endif; ?>
 
         <?php if ($success): ?>
             <div class="auth-alert success">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M16.7 5.3a1 1 0 0 0-1.4 0L8 12.6 4.7 9.3a1 1 0 0 0-1.4 1.4l4 4a1 1 0 0 0 1.4 0l8-8a1 1 0 0 0 0-1.4z"/></svg>
-                <span><?= h($success) ?><br><a href="login.php" class="text-accent" style="text-decoration:underline;margin-top:4px;display:inline-block;">Sign in</a></span>
-            </div>
-        <?php endif; ?>
-
-        <?php if (defined('MAIL_DEV_MODE') && MAIL_DEV_MODE && $otpDev): ?>
-            <div class="otp-dev-box">
-                <span class="badge badge-pending" style="margin-bottom:8px;">DEV MODE</span>
-                <div style="margin-top:4px;">Your OTP is:</div>
-                <code><?= h($otpDev) ?></code>
-                <div style="font-size:11px;color:#999;margin-top:4px;">
-                    (Also logged in <code>storage/logs/otp.log</code>)
-                </div>
+                <span><?= h($success) ?><br><a href="<?= BASE_URL ?>/login" class="text-accent" style="text-decoration:underline;margin-top:4px;display:inline-block;">Sign in</a></span>
             </div>
         <?php endif; ?>
 
         <?php if (!$success): ?>
         <form method="POST" id="otpForm">
             <?= csrfField() ?>
-            <input type="hidden" name="student_id" value="<?= $studentId ?>">
-            <input type="hidden" name="email" value="<?= h($email) ?>">
             <input type="hidden" name="action" value="verify">
 
             <div class="form-group">
-                <label for="otp">Enter OTP</label>
+                <label for="otp">Enter 6-digit OTP</label>
                 <input class="form-input otp-input" type="text" id="otp" name="otp"
                        placeholder="000000" maxlength="6" inputmode="numeric"
                        pattern="[0-9]{6}" autocomplete="one-time-code"
@@ -185,32 +197,40 @@ try {
             </button>
         </form>
 
-        <div class="auth-footer">
-            <form method="POST" style="display:inline;">
+        <div class="auth-footer" style="display:flex;justify-content:space-between;align-items:center;">
+            <form method="POST" id="resendForm" style="display:inline;">
                 <?= csrfField() ?>
-                <input type="hidden" name="student_id" value="<?= $studentId ?>">
-                <input type="hidden" name="email" value="<?= h($email) ?>">
                 <input type="hidden" name="action" value="resend">
-                <button type="submit" class="btn btn-sm btn-ghost text-accent" style="border:none;">
-                    Resend OTP
+                <button type="submit" id="resendBtn" class="btn btn-sm btn-ghost text-accent" style="border:none;" <?= $cooldownRemaining > 0 ? 'disabled' : '' ?>>
+                    <?= $cooldownRemaining > 0 ? "Resend OTP ({$cooldownRemaining}s)" : 'Resend OTP' ?>
                 </button>
             </form>
             <span class="otp-timer-text">OTP expires in 10 minutes</span>
         </div>
 
         <div class="auth-footer" style="margin-top:var(--space-4);">
-            <a href="signup.php" class="auth-footer-link">← Back to registration</a>
+            <a href="<?= BASE_URL ?>/signup" class="auth-footer-link">← Back to registration</a>
         </div>
         <?php endif; ?>
     </div>
 
     <script>
-    // Auto-submit on 6 digits
-    document.getElementById('otp')?.addEventListener('input', function() {
-        if (this.value.length === 6 && /^\d{6}$/.test(this.value)) {
-            // Optional: auto-submit after a short delay
+    (function() {
+        var cooldown = <?= (int)$cooldownRemaining ?>;
+        var btn = document.getElementById('resendBtn');
+        if (cooldown > 0 && btn) {
+            var interval = setInterval(function() {
+                cooldown--;
+                if (cooldown <= 0) {
+                    clearInterval(interval);
+                    btn.disabled = false;
+                    btn.textContent = 'Resend OTP';
+                } else {
+                    btn.textContent = 'Resend OTP (' + cooldown + 's)';
+                }
+            }, 1000);
         }
-    });
+    })();
     </script>
 </body>
 </html>

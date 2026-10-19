@@ -29,6 +29,44 @@ $pageToNavMap = [
 
 $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 ?>
+<script>
+(function() {
+    var saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2];
+    if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+    }
+})();
+if (typeof toggleTheme !== 'function') {
+    window.toggleTheme = function() {
+        var html = document.documentElement;
+        var isDark = html.getAttribute('data-theme') === 'dark';
+        var newTheme = isDark ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000;SameSite=Lax';
+        updateThemeUI(newTheme);
+        if (typeof applyChartTheme === 'function') {
+            applyChartTheme(newTheme === 'dark');
+        }
+    };
+}
+if (typeof updateThemeUI !== 'function') {
+    window.updateThemeUI = function(theme) {
+        var label = document.getElementById('themeLabel');
+        if (label) label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+        document.querySelectorAll('.theme-icon').forEach(function(el) {
+            el.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+        });
+    };
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2];
+    if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+        updateThemeUI(saved);
+    }
+});
+</script>
 
 <div class="dashboard-layout" id="app">
 
@@ -49,7 +87,7 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 
         <!-- Logo -->
         <a
-            href="dashboard.php"
+            href="<?= BASE_URL ?>/student/dashboard"
             class="sidebar-logo"
             style="text-decoration: none;"
         >
@@ -121,7 +159,7 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 
                 <!-- Dashboard -->
                 <a
-                    href="dashboard.php"
+                    href="<?= BASE_URL ?>/student/dashboard"
                     class="sidebar-nav-item <?= $currentNav === 'dashboard' ? 'active' : '' ?>"
                 >
                     <?= icon('dashboard', 20) ?>
@@ -131,8 +169,8 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 
                 <!-- My Tests -->
                 <a
-                    href="my-tests.php"
-                    class="sidebar-nav-item<?=$currentNav=== 'my-tests'?'active' : '' ?>"
+                    href="<?= BASE_URL ?>/student/my-tests"
+                    class="sidebar-nav-item <?= $currentNav === 'my-tests' ? 'active' : '' ?>"
                 >
                     <?= icon('test', 20) ?>
                     <span>My Tests</span>
@@ -141,7 +179,7 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 
                 <!-- Results -->
                 <a
-                    href="results.php"
+                    href="<?= BASE_URL ?>/student/results"
                     class="sidebar-nav-item <?= $currentNav === 'results' ? 'active' : '' ?>"
                 >
                     <?= icon('chart', 20) ?>
@@ -151,7 +189,7 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 
                 <!-- Analytics -->
                 <a
-                    href="analytics.php"
+                    href="<?= BASE_URL ?>/student/analytics"
                     class="sidebar-nav-item <?= $currentNav === 'analytics' ? 'active' : '' ?>"
                 >
                     <?= icon('graph', 20) ?>
@@ -161,7 +199,7 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 
                 <!-- Profile -->
                 <a
-                    href="profile.php"
+                    href="<?= BASE_URL ?>/student/profile"
                     class="sidebar-nav-item <?= $currentNav === 'profile' ? 'active' : '' ?>"
                 >
                     <?= icon('student', 20) ?>
@@ -207,7 +245,7 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
             >
 
                 <a
-                    href="<?= BASE_URL ?>/logout.php"
+                    href="<?= BASE_URL ?>/logout"
                     class="sidebar-nav-item"
                 >
                     <?= icon('logout', 20) ?>

@@ -17,19 +17,50 @@ if (!function_exists('str_contains')) {
 // ────────────────────────────────────────────────────────────
 
 /**
+/**
+ * Redact passwords, OTPs, tokens, and secrets from messages.
+ */
+function sanitizeSensitiveString(string $msg): string {
+    $patterns = [
+        '/(password|passwd|pwd|token|otp|secret|app_pass)([\s:=]+)([^\s,;&"\'\]]+)/i' => '$1$2[REDACTED]',
+        '/\b[0-9]{6}\b/' => '[REDACTED_OTP]',
+    ];
+    return (string)preg_replace(array_keys($patterns), array_values($patterns), $msg);
+}
+
+/**
  * Redirect and exit.
  * Automatically strips hardcoded XAMPP prefix and prepends BASE_URL.
+ * Prevents open redirects to arbitrary domains.
  */
 function redirect(string $url): void {
+    // Strip CRLF injection attempts
+    $url = str_replace(["\r", "\n"], '', $url);
+
     // Strip any hardcoded XAMPP prefix (keeps URLs portable)
     $prefix = '/test-platform/src/php/public';
     if (str_starts_with($url, $prefix)) {
         $url = substr($url, strlen($prefix));
     }
-    // Prepend BASE_URL for absolute paths
-    if (str_starts_with($url, '/')) {
-        $url = BASE_URL . $url;
+
+    $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+
+    // Prevent open redirect vulnerabilities:
+    // If URL starts with protocol (e.g. http:, https:, javascript:) or protocol-relative '//'
+    if (preg_match('#^(?:[a-z0-9+.-]+:)?//#i', $url)) {
+        // Only allow if it explicitly starts with BASE_URL
+        if (!empty($baseUrl) && str_starts_with($url, $baseUrl)) {
+            // Safe local destination
+        } else {
+            // Disallowed external domain — fallback to local root
+            $url = $baseUrl . '/';
+        }
+    } elseif (str_starts_with($url, '/')) {
+        $url = $baseUrl . $url;
+    } else {
+        $url = $baseUrl . '/' . $url;
     }
+
     if (!headers_sent()) {
         header('Location: ' . $url);
     } else {
@@ -347,6 +378,8 @@ function notifyAdmin(string $type, string $title, string $message, ?string $link
     try {
         static $pdo = null;
         $pdo = $pdo ?? getDB();
+        // Redact any secrets/passwords/OTPs before storing
+        $message = sanitizeSensitiveString($message);
         $stmt = $pdo->prepare("INSERT INTO admin_notifications (type, title, message, link) VALUES (?, ?, ?, ?)");
         $stmt->execute([$type, $title, mb_substr($message, 0, 500), $link]);
     } catch (Throwable $e) {

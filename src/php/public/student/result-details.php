@@ -670,7 +670,7 @@ switch ($type) {
 <div class="result-details-header">
 
     <a
-        href="results.php"
+        href="results"
         class="result-back-link"
     >
         <?= icon('arrow-left', 15) ?>
@@ -789,7 +789,7 @@ switch ($type) {
             </div>
 
             <a
-                href="result-details.php?type=<?= h($type) ?>"
+                href="result-details?type=<?= h($type) ?>"
                 class="result-action"
             >
                 <?= icon('arrow-left', 14) ?>
@@ -1460,7 +1460,7 @@ switch ($type) {
 
 
                     <a
-                        href="result-details.php?type=highest&submission_id=<?= (int)$highestResult['submission_id'] ?>"
+                        href="result-details?type=highest&submission_id=<?= (int)$highestResult['submission_id'] ?>"
                         class="result-action"
                     >
                         <?= icon('chart', 14) ?>
@@ -1479,7 +1479,7 @@ switch ($type) {
     <!-- Average Score Header -->
     <div class="analysis-header">
         <div>
-            <a href="results.php" class="back-link">
+            <a href="results" class="back-link">
                 <?= icon('arrow-left', 16) ?>
                 Back to Results
             </a>
@@ -1668,7 +1668,7 @@ switch ($type) {
                                 <td>
 
                                     <a
-                                        href="result-details.php?type=evaluated&submission_id=<?= (int)$result['submission_id'] ?>"
+                                        href="result-details?type=evaluated&submission_id=<?= (int)$result['submission_id'] ?>"
                                         class="view-analysis-btn"
                                     >
                                         View Analysis
@@ -1934,7 +1934,7 @@ switch ($type) {
                                         <td>
 
                                             <a
-                                                href="result-details.php?type=evaluated&submission_id=<?= (int)$result['submission_id'] ?>"
+                                                href="result-details?type=evaluated&submission_id=<?= (int)$result['submission_id'] ?>"
                                                 class="result-action"
                                             >
 
@@ -1969,7 +1969,7 @@ switch ($type) {
     <!-- Highest Score Header -->
     <div class="analysis-header">
         <div>
-            <a href="results.php" class="back-link">
+            <a href="results" class="back-link">
                 <?= icon('arrow-left', 16) ?>
                 Back to Results
             </a>
@@ -2105,7 +2105,7 @@ switch ($type) {
 
 
                 <a
-                    href="result-details.php?type=evaluated&submission_id=<?= (int)$highestResult['submission_id'] ?>"
+                    href="result-details?type=evaluated&submission_id=<?= (int)$highestResult['submission_id'] ?>"
                     class="view-analysis-btn"
                 >
                     View Full Analysis
@@ -2235,7 +2235,7 @@ switch ($type) {
 
                                 <td>
                                     <a
-                                        href="result-details.php?type=evaluated&submission_id=<?= (int)$result['submission_id'] ?>"
+                                        href="result-details?type=evaluated&submission_id=<?= (int)$result['submission_id'] ?>"
                                         class="view-analysis-btn"
                                     >
                                         View Analysis
@@ -2285,7 +2285,7 @@ switch ($type) {
     <!-- Pending Header -->
     <div class="analysis-header">
         <div>
-            <a href="results.php" class="back-link">
+            <a href="results" class="back-link">
                 <?= icon('arrow-left', 16) ?>
                 Back to Results
             </a>

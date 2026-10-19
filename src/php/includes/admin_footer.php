@@ -192,7 +192,7 @@ document.addEventListener('click', function(e) {
                 { label: '<?= h($item['label']) ?>', section: '<?= h($section['label']) ?>', url: '<?= BASE_URL ?>/admin/<?= $item['url'] ?>', icon: '<?= $item['icon'] ?>' },
             <?php endforeach; ?>
         <?php endforeach; ?>
-        { label: 'Dashboard', section: 'General', url: '<?= BASE_URL ?>/admin/dashboard.php', icon: 'dashboard' },
+        { label: 'Dashboard', section: 'General', url: '<?= BASE_URL ?>/admin/dashboard', icon: 'dashboard' },
     ];
 
     const input = document.getElementById('globalSearch');

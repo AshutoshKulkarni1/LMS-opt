@@ -48,59 +48,59 @@ $navSections = [
     'overview' => [
         'label' => 'Overview',
         'items' => [
-            ['url' => 'dashboard.php', 'label' => 'Dashboard', 'icon' => 'dashboard', 'color' => 'dashboard'],
+            ['url' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard', 'color' => 'dashboard'],
         ],
     ],
     'institution' => [
         'label' => 'Institution Management',
         'items' => [
-            ['url' => 'colleges.php',  'label' => 'Colleges', 'icon' => 'college', 'color' => 'college'],
-            ['url' => 'courses.php',   'label' => 'Courses',  'icon' => 'course',  'color' => 'course'],
-            ['url' => 'batches.php',   'label' => 'Batches',  'icon' => 'batch',   'color' => 'batch'],
+            ['url' => 'colleges',  'label' => 'Colleges', 'icon' => 'college', 'color' => 'college'],
+            ['url' => 'courses',   'label' => 'Courses',  'icon' => 'course',  'color' => 'course'],
+            ['url' => 'batches',   'label' => 'Batches',  'icon' => 'batch',   'color' => 'batch'],
         ],
     ],
     'students' => [
         'label' => 'Student Management',
         'items' => [
-            ['url' => 'students.php',              'label' => 'Students',             'icon' => 'student', 'color' => 'student'],
-            ['url' => 'pending_verifications.php', 'label' => 'Pending Verifications','icon' => 'clock',   'color' => 'pending'],
+            ['url' => 'students',              'label' => 'Students',             'icon' => 'student', 'color' => 'student'],
+            ['url' => 'pending_verifications', 'label' => 'Pending Verifications','icon' => 'clock',   'color' => 'pending'],
         ],
     ],
     'studio' => [
         'label' => 'Assessment Studio',
         'items' => [
-            ['url' => 'assessment_studio.php',              'label' => 'Create Assessment',  'icon' => 'plus',     'color' => 'create'],
-            ['url' => 'assessment_studio.php?tab=drafts',   'label' => 'Draft Assessments',  'icon' => 'document', 'color' => 'drafts'],
-            ['url' => 'question_library.php',                'label' => 'Question Library',   'icon' => 'database', 'color' => 'library'],
+            ['url' => 'assessment_studio',              'label' => 'Create Assessment',  'icon' => 'plus',     'color' => 'create'],
+            ['url' => 'assessment_studio?tab=drafts',   'label' => 'Draft Assessments',  'icon' => 'document', 'color' => 'drafts'],
+            ['url' => 'question_library',                'label' => 'Question Library',   'icon' => 'database', 'color' => 'library'],
         ],
     ],
     'management' => [
         'label' => 'Assessment Management',
         'items' => [
-            ['url' => 'assessment_management.php',           'label' => 'All Assessments',    'icon' => 'status', 'color' => 'assessments'],
-            ['url' => 'live_monitor.php',                    'label' => 'Live Monitor',       'icon' => 'pulse',  'color' => 'monitor'],
-            ['url' => 'grading.php',                         'label' => 'Grading',            'icon' => 'grading','color' => 'grading'],
+            ['url' => 'assessment_management',           'label' => 'All Assessments',    'icon' => 'status', 'color' => 'assessments'],
+            ['url' => 'live_monitor',                    'label' => 'Live Monitor',       'icon' => 'pulse',  'color' => 'monitor'],
+            ['url' => 'grading',                         'label' => 'Grading',            'icon' => 'grading','color' => 'grading'],
         ],
     ],
     'reports' => [
         'label' => 'Reports & Analytics',
         'items' => [
-            ['url' => 'reports.php',       'label' => 'Reports',       'icon' => 'chart',    'color' => 'reports'],
-            ['url' => 'tab_switcher.php',  'label' => 'Tab Activity',  'icon' => 'activity', 'color' => 'tabactivity'],
-            ['url' => 'failed_logins.php', 'label' => 'Failed Logins', 'icon' => 'warning',  'color' => 'failed'],
+            ['url' => 'reports',       'label' => 'Reports',       'icon' => 'chart',    'color' => 'reports'],
+            ['url' => 'tab_switcher',  'label' => 'Tab Activity',  'icon' => 'activity', 'color' => 'tabactivity'],
+            ['url' => 'failed_logins', 'label' => 'Failed Logins', 'icon' => 'warning',  'color' => 'failed'],
         ],
     ],
     'system' => [
         'label' => 'System',
         'items' => [
-            ['url' => 'settings.php',     'label' => 'Settings',     'icon' => 'settings', 'color' => 'settings'],
-            ['url' => 'activity_logs.php', 'label' => 'Activity Logs', 'icon' => 'clock',   'color' => 'activity'],
+            ['url' => 'settings',     'label' => 'Settings',     'icon' => 'settings', 'color' => 'settings'],
+            ['url' => 'activity_logs', 'label' => 'Activity Logs', 'icon' => 'clock',   'color' => 'activity'],
         ],
     ],
     'support' => [
         'label' => 'Support',
         'items' => [
-            ['url' => 'help.php', 'label' => 'Help & Documentation', 'icon' => 'help', 'color' => 'help'],
+            ['url' => 'help', 'label' => 'Help & Documentation', 'icon' => 'help', 'color' => 'help'],
         ],
     ],
 ];
@@ -110,7 +110,11 @@ function isNavActive(string $itemUrl, string $currentPage, string $currentTab): 
     $urlQuery = parse_url($itemUrl, PHP_URL_QUERY);
     parse_str($urlQuery ?? '', $urlParams);
     $tabParam = $urlParams['tab'] ?? '';
-    if ($urlPath === $currentPage) {
+
+    $normItem = preg_replace('/\.php$/', '', $urlPath);
+    $normCurrent = preg_replace('/\.php$/', '', $currentPage);
+
+    if ($normItem === $normCurrent) {
         if (!$tabParam && !$currentTab) return true;
         if ($tabParam && $tabParam === $currentTab) return true;
     }
@@ -199,7 +203,7 @@ $sidebarCollapsed = $_COOKIE['sidebar_collapsed'] ?? '' === '1';
                 <?php endforeach; ?>
             <?php endforeach; ?>
             <div class="sidebar-divider"></div>
-            <a href="<?= BASE_URL ?>/logout.php" class="nav-item nav-c-signout" style="margin-top:auto;" data-tooltip="Sign Out">
+            <a href="<?= BASE_URL ?>/logout" class="nav-item nav-c-signout" style="margin-top:auto;" data-tooltip="Sign Out">
                 <span class="nav-icon"><?= icon('logout', 24) ?></span>
                 <span class="nav-label">Sign Out</span>
             </a>
@@ -227,7 +231,7 @@ $sidebarCollapsed = $_COOKIE['sidebar_collapsed'] ?? '' === '1';
                 </div>
             </div>
             <div class="topnav-right">
-                <button class="topnav-quick-action" onclick="window.location.href='<?= BASE_URL ?>/admin/assessment_studio.php'">
+                <button class="topnav-quick-action" onclick="window.location.href='<?= BASE_URL ?>/admin/assessment_studio'">
                     <?= icon('plus', 16) ?>
                     <span class="qa-label-text">Create Assessment</span>
                 </button>
@@ -247,7 +251,7 @@ $sidebarCollapsed = $_COOKIE['sidebar_collapsed'] ?? '' === '1';
                             <?php if ($notifCount > 0): ?>
                             <button class="btn btn-sm btn-ghost" id="notifMarkAll">Mark all read</button>
                             <?php endif; ?>
-                            <a class="btn btn-sm btn-ghost" href="<?= BASE_URL ?>/admin/notifications.php">View all</a>
+                            <a class="btn btn-sm btn-ghost" href="<?= BASE_URL ?>/admin/notifications">View all</a>
                             <button class="btn btn-sm btn-ghost" onclick="toggleNotifications()"><?= icon('x', 14) ?></button>
                         </div>
                     </div>
@@ -266,11 +270,11 @@ $sidebarCollapsed = $_COOKIE['sidebar_collapsed'] ?? '' === '1';
                         <span class="topnav-profile-role">Administrator</span>
                     </div>
                     <div class="profile-dropdown" id="profileDropdown">
-                        <a href="<?= BASE_URL ?>/admin/settings.php" class="profile-dropdown-item">
+                        <a href="<?= BASE_URL ?>/admin/settings" class="profile-dropdown-item">
                             <?= icon('settings', 16) ?> Account Settings
                         </a>
                         <div class="profile-dropdown-divider"></div>
-                        <a href="<?= BASE_URL ?>/logout.php" class="profile-dropdown-item profile-dropdown-danger">
+                        <a href="<?= BASE_URL ?>/logout" class="profile-dropdown-item profile-dropdown-danger">
                             <?= icon('logout', 16) ?> Sign Out
                         </a>
                     </div>

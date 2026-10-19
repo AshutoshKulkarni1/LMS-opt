@@ -8,7 +8,7 @@ require_once __DIR__ . '/../includes/helpers.php';
 startSession();
 
 // If already logged in as student, redirect
-if (isStudent()) { redirect('/student/dashboard.php'); }
+if (isStudent()) { redirect('/student/dashboard'); }
 
 $error = '';
 $token = '';
@@ -28,9 +28,9 @@ function processGuestToken(string $token): ?string {
     if ($result['success']) {
         $testParam = $result['test_id'] ?? ($_SESSION['test_id'] ?? 0);
         if ($testParam > 0) {
-            redirect('/student/test.php?test_id=' . $testParam);
+            redirect('/student/test?test_id=' . $testParam);
         } else {
-            redirect('/student/dashboard.php');
+            redirect('/student/dashboard');
         }
     }
     return $result['error'] ?? 'Unknown error.';
@@ -110,7 +110,7 @@ if (!empty($token)) {
         </form>
 
         <div class="auth-footer">
-            <a href="login.php">Sign in with your account</a>
+            <a href="<?= BASE_URL ?>/login">Sign in with your account</a>
         </div>
     </div>
 </body>

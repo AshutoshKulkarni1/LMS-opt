@@ -56,14 +56,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             if ($result['success']) {
-                // Redirect to OTP verification
-                $query = http_build_query([
-                    'student_id' => $result['student_id'],
-                    'email'      => trim($_POST['email']),
-                    'otp_dev'    => $result['otp_dev'] ?? '',
-                ]);
-                header('Location: ' . BASE_URL . '/verify-otp.php?' . $query);
-                exit;
+                // Store pending verification securely on server session (bound to student)
+                $_SESSION['pending_verification'] = [
+                    'student_id'   => (int)$result['student_id'],
+                    'email'        => trim($_POST['email']),
+                    'name'         => trim($_POST['name']),
+                    'attempts'     => 0,
+                    'last_sent_at' => time(),
+                ];
+                redirect('/verify-otp');
             } else {
                 $error = $result['error'];
             }
@@ -263,7 +264,7 @@ try {
         </form>
 
         <div class="auth-footer">
-            Already have an account? <a href="login.php">Sign in</a>
+            Already have an account? <a href="<?= BASE_URL ?>/login">Sign in</a>
         </div>
         <?php endif; ?>
     </div>

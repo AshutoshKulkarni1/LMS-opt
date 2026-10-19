@@ -2,7 +2,81 @@
 # LMS Portal — Production Apache Configuration (.htaccess)
 # ====================================================================
 
-# ─── 1. HTTP Gzip Compression (mod_deflate) ────────────────────────
+# ─── 1. Security & Protection ──────────────────────────────────────
+# Disable directory indexing and negotiation
+Options -Indexes -MultiViews
+
+# Block access to hidden files and sensitive directories
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block access to dotfiles (.env, .git, etc.)
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Block direct web access to internal code and storage directories
+    RewriteRule ^(?:src/php/(?:config|includes|storage)) - [F,L]
+</IfModule>
+
+# Block access to specific file extensions (configs, logs, markdown)
+<FilesMatch "^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|.*\.log|.*\.md)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ─── 2. Clean URLs & Routing (mod_rewrite) ─────────────────────────
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Prevent loop issues
+    RewriteCond %{ENV:REDIRECT_STATUS} 200
+    RewriteRule ^ - [L]
+
+    # Pass through static assets and real files directly
+    RewriteCond %{REQUEST_URI} ^/(?:assets/|favicon\.ico|robots\.txt) [NC]
+    RewriteRule ^ - [L]
+
+    # Pass through existing real files and directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Redirect GET/HEAD requests with .php to canonical clean URLs (preserving query string)
+    # NEVER redirect POST requests (preserves form submission data)
+    # Exclude /api/ from .php redirect to ensure API compatibility
+    RewriteCond %{REQUEST_METHOD} !^POST$ [NC]
+    RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+    RewriteCond %{REQUEST_URI} !^/api/ [NC]
+    RewriteRule ^ /%1 [R=301,L,QSA]
+
+    # Clean Dynamic Route: /admin/colleges/{id} -> src/php/public/admin/college_dashboard.php?id={id}
+    RewriteRule ^admin/colleges/([0-9]+)/?$ src/php/public/admin/college_dashboard.php?id=$1 [L,QSA]
+
+    # API Clean URLs: /api/{endpoint} -> src/php/api/{endpoint}.php
+    RewriteCond %{DOCUMENT_ROOT}/src/php/api/$1.php -f
+    RewriteRule ^api/([^/]+)/?$ src/php/api/$1.php [L,QSA]
+
+    # Public Clean URLs: /{route} -> src/php/public/{route}.php
+    RewriteCond %{DOCUMENT_ROOT}/src/php/public/$1.php -f
+    RewriteRule ^([^/]+)/?$ src/php/public/$1.php [L,QSA]
+
+    # Student Clean URLs: /student/{route} -> src/php/public/student/{route}.php
+    RewriteCond %{DOCUMENT_ROOT}/src/php/public/student/$1.php -f
+    RewriteRule ^student/([^/]+)/?$ src/php/public/student/$1.php [L,QSA]
+
+    # Admin Clean URLs: /admin/{route} -> src/php/public/admin/{route}.php
+    RewriteCond %{DOCUMENT_ROOT}/src/php/public/admin/$1.php -f
+    RewriteRule ^admin/([^/]+)/?$ src/php/public/admin/$1.php [L,QSA]
+
+    # Root route: / -> src/php/public/index.php
+    RewriteRule ^$ src/php/public/index.php [L]
+</IfModule>
+
+# ─── 3. HTTP Gzip Compression (mod_deflate) ────────────────────────
 <IfModule mod_deflate.c>
     # Compress all suitable text-based responses
     AddOutputFilterByType DEFLATE text/html
@@ -32,7 +106,7 @@
     </IfModule>
 </IfModule>
 
-# ─── 2. Browser Caching (mod_expires & mod_headers) ────────────────
+# ─── 4. Browser Caching (mod_expires & mod_headers) ────────────────
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType text/css "access plus 1 year"

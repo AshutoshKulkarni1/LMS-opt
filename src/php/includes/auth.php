@@ -169,7 +169,6 @@ function generateStudentOtp(int $studentId, string $email, string $name): array 
 
     $result = [
         'success'   => $mailResult['success'],
-        'otp'       => $otp,
         'expires_at'=> $expiresAt,
         'mail_info' => $mailResult,
     ];
@@ -180,6 +179,19 @@ function generateStudentOtp(int $studentId, string $email, string $name): array 
     }
 
     return $result;
+}
+
+/**
+ * Invalidate OTP for a student (e.g. on max failed attempts).
+ */
+function invalidateStudentOtp(int $studentId): void {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare("UPDATE unverified_students SET otp_hash = NULL, otp_expires_at = NULL WHERE id = ?");
+        $stmt->execute([$studentId]);
+    } catch (Exception $e) {
+        error_log('Failed to invalidate OTP: ' . $e->getMessage());
+    }
 }
 
 /**
@@ -209,7 +221,7 @@ function verifyStudentOtp(int $studentId, string $otp): array {
         logFailedLogin($student['email'], 'expired_otp', 'OTP expired.', $student['name']);
         notifyAdmin('student_account', 'Account not completed — OTP expired',
             $student['name'] . ' (' . $student['email'] . ') tried to verify with an expired OTP.',
-            BASE_URL . '/admin/pending_verifications.php');
+            BASE_URL . '/admin/pending_verifications');
         return ['success' => false, 'error' => 'OTP expired. Request a new one.', 'expired' => true];
     }
 
@@ -256,7 +268,7 @@ function verifyStudentOtp(int $studentId, string $otp): array {
         logFailedLogin($student['email'], 'signup_unverified', 'DB error during verification: ' . $e->getMessage(), $student['name']);
         notifyAdmin('student_account', 'Verification failed — DB error',
             $student['name'] . ' (' . $student['email'] . ') could not be verified: ' . $e->getMessage(),
-            BASE_URL . '/admin/pending_verifications.php');
+            BASE_URL . '/admin/pending_verifications');
         return ['success' => false, 'error' => 'Verification failed. Please try again.'];
     }
 
@@ -337,7 +349,7 @@ function studentLogin(string $email, string $password): array {
             'student_account',
             'Account not completed — never verified',
             $user['name'] . ' (' . $email . ') registered but never verified their email.',
-            BASE_URL . '/admin/pending_verifications.php'
+            BASE_URL . '/admin/pending_verifications'
         );
         return [
             'success'      => false,
@@ -385,7 +397,7 @@ function studentRegister(array $data): array {
         logFailedLogin($data['email'], 'duplicate_email', 'Email already registered (unverified).');
         notifyAdmin('student_account', 'Signup blocked — verification pending',
             $data['name'] . ' (' . $data['email'] . ') already registered but never completed verification.',
-            BASE_URL . '/admin/pending_verifications.php');
+            BASE_URL . '/admin/pending_verifications');
         return ['success' => false, 'error' => 'Email already registered. Please check your email for the OTP or request a new one.'];
     }
 
@@ -454,14 +466,13 @@ function studentRegister(array $data): array {
     if (!$otpResult['success']) {
         notifyAdmin('student_account', 'OTP email failed — account not completed',
             $data['name'] . ' (' . $data['email'] . ') registered but the OTP email could not be sent: ' . ($otpResult['error'] ?? 'unknown'),
-            BASE_URL . '/admin/pending_verifications.php');
+            BASE_URL . '/admin/pending_verifications');
     }
 
     return [
         'success'   => true,
         'student_id'=> $studentId,
         'otp_sent'  => $otpResult['success'],
-        'otp_dev'   => $otpResult['otp'] ?? null, // Only in dev mode
     ];
 }
 
@@ -477,15 +488,13 @@ function isStudent(): bool {
 
 function requireAdmin(): void {
     if (!isAdmin()) {
-        header('Location: ' . BASE_URL . '/login.php');
-        exit;
+        redirect('/login');
     }
 }
 
 function requireStudent(): void {
     if (!isStudent()) {
-        header('Location: ' . BASE_URL . '/login.php');
-        exit;
+        redirect('/login');
     }
 }
 

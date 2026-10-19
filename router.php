@@ -1,57 +1,77 @@
 <?php
 /**
- * PHP built-in development server router.
+ * PHP built-in development server router with Clean URL support.
  *
  * Usage: php -S localhost:8000 router.php
  *
- * This router:
- * 1. Serves static assets (css/js/images/fonts) directly from the project root.
- * 2. Routes PHP requests to src/php/public/.
- * 3. Rewrites /assets/* to the real assets/ directory.
+ * Features:
+ * 1. Clean URLs: routes /login, /signup, /verify-otp, /student/*, /admin/* to their respective PHP files.
+ * 2. Canonical 301 Redirection: redirects legacy .php URLs to clean URLs for GET/HEAD requests.
+ * 3. POST Safety: NEVER redirects POST requests; preserves form submissions and request bodies.
+ * 4. Query String Preservation: retains query strings on clean redirects and dispatching.
+ * 5. Static Assets: directly serves /assets/*, favicon.ico, and robots.txt with caching and gzip.
+ * 6. Security: blocks path traversal, null bytes, and sensitive files (.env, config/, storage/).
  */
 
-// Serve static assets directly
 header('Connection: close');
-$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+$queryString = $_SERVER['QUERY_STRING'] ?? '';
+$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+// ─── 1. Security Check: Path Traversal & Null Bytes ──────────
+if (strpos($requestUri, '..') !== false || strpos($requestUri, "\0") !== false) {
+    http_response_code(400);
+    echo "400 Bad Request";
+    return true;
+}
 
 // Strip /test-platform prefix if present (for XAMPP URL portability)
 if (str_starts_with($requestUri, '/test-platform')) {
-    $requestUri = substr($requestUri, strlen('/test-platform'));
+    $requestUri = substr($requestUri, strlen('/test-platform')) ?: '/';
 }
 
-// ─── Map /assets/ to real filesystem path ───────────────────
+// ─── 2. Block direct web access to sensitive internal files ─
+if (preg_match('#^/(?:\.env|\.git|composer\.(?:json|lock)|package(?:-lock)?\.json|src/php/(?:config|includes|storage))#i', $requestUri)) {
+    http_response_code(403);
+    echo "403 Forbidden";
+    return true;
+}
+
+// ─── 3. Map /assets/ to real filesystem path ────────────────
 if (strpos($requestUri, '/assets/') === 0) {
     $filePath = __DIR__ . $requestUri;
     if (file_exists($filePath) && !is_dir($filePath)) {
-        // Set MIME type based on extension
         $ext = pathinfo($filePath, PATHINFO_EXTENSION);
         $mimeTypes = [
-            'css'  => 'text/css',
-            'js'   => 'application/javascript',
-            'png'  => 'image/png',
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'gif'  => 'image/gif',
-            'svg'  => 'image/svg+xml',
-            'webp' => 'image/webp',
-            'woff' => 'font/woff',
-            'woff2'=> 'font/woff2',
-            'ttf'  => 'font/ttf',
-            'ico'  => 'image/x-icon',
-            'json' => 'application/json',
+            'css'   => 'text/css',
+            'js'    => 'application/javascript',
+            'png'   => 'image/png',
+            'jpg'   => 'image/jpeg',
+            'jpeg'  => 'image/jpeg',
+            'gif'   => 'image/gif',
+            'svg'   => 'image/svg+xml',
+            'webp'  => 'image/webp',
+            'woff'  => 'font/woff',
+            'woff2' => 'font/woff2',
+            'ttf'   => 'font/ttf',
+            'ico'   => 'image/x-icon',
+            'json'  => 'application/json',
         ];
         if (isset($mimeTypes[$ext])) {
             header('Content-Type: ' . $mimeTypes[$ext]);
         }
-        header('Cache-Control: public, max-age=31536000, immutable');
+        if (in_array(strtolower($ext), ['css', 'js'], true)) {
+            header('Cache-Control: no-cache, must-revalidate');
+        } else {
+            header('Cache-Control: public, max-age=31536000, immutable');
+        }
 
-        $isHead = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD';
+        $isHead = ($method === 'HEAD');
 
-        // Gzip compression for eligible static text responses (css, js, svg, json, xml, txt)
+        // Gzip compression for eligible text assets
         $isEligible = in_array(strtolower($ext), ['css', 'js', 'svg', 'json', 'xml', 'txt', 'html'], true);
         if ($isEligible) {
             header('Vary: Accept-Encoding');
-
             $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
             $supportsGzip = false;
             if (preg_match('/(?:^|,)\s*gzip\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
@@ -80,20 +100,18 @@ if (strpos($requestUri, '/assets/') === 0) {
             return true;
         }
 
-        // For non-compressible assets (images, fonts, etc.)
         header('Content-Length: ' . filesize($filePath));
         if (!$isHead) {
             readfile($filePath);
         }
         return true;
     }
-    // If asset not found, return 404
     http_response_code(404);
     echo "Asset not found: $requestUri";
     return true;
 }
 
-// ─── Serve well-known root static files (favicon, robots.txt) ──
+// ─── 4. Serve well-known root static files (favicon, robots.txt) ──
 if (preg_match('#^/(favicon\.ico|robots\.txt)$#', $requestUri, $m)) {
     $filePath = __DIR__ . '/' . $m[1];
     if (file_exists($filePath)) {
@@ -104,7 +122,7 @@ if (preg_match('#^/(favicon\.ico|robots\.txt)$#', $requestUri, $m)) {
     }
 }
 
-// ─── Helper to serve dynamic PHP scripts with optional Gzip compression ─
+// ─── 5. Helper to serve dynamic PHP scripts with Gzip ────────
 function servePhpScript(string $file): bool {
     $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
     $supportsGzip = false;
@@ -120,30 +138,58 @@ function servePhpScript(string $file): bool {
     return true;
 }
 
-// ─── Map /api/ and /src/php/api/ to src/php/api/ ────────────
+// ─── 6. Map /api/ and /src/php/api/ to src/php/api/ ──────────
 if (strpos($requestUri, '/api/') === 0 || strpos($requestUri, '/src/php/api/') === 0) {
-    $apiDir = __DIR__ . '/src/php';
-    $filePath = $apiDir . $requestUri;
-    // Remove /src/php prefix if present (legacy XAMPP paths)
-    if (strpos($requestUri, '/src/php/api/') === 0) {
-        $filePath = $apiDir . substr($requestUri, strlen('/src/php'));
+    $endpoint = strpos($requestUri, '/src/php/api/') === 0
+        ? substr($requestUri, strlen('/src/php/api/'))
+        : substr($requestUri, strlen('/api/'));
+
+    $apiDir = __DIR__ . '/src/php/api';
+    $filePath = $apiDir . '/' . ltrim($endpoint, '/');
+    if (!str_ends_with($filePath, '.php')) {
+        $filePath .= '.php';
     }
-    if (file_exists($filePath) && !is_dir($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'php') {
-        return servePhpScript($filePath);
+    $realApi = realpath($filePath);
+    $realApiDir = realpath($apiDir);
+    if ($realApi && $realApiDir && str_starts_with($realApi, $realApiDir) && is_file($realApi)) {
+        return servePhpScript($realApi);
     }
     http_response_code(404);
-    echo "API endpoint not found: $requestUri";
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'API endpoint not found', 'uri' => $requestUri]);
     return true;
 }
 
-// ─── Strip /src/php/public prefix (legacy XAMPP paths) ────
+// Strip /src/php/public prefix (legacy XAMPP paths)
 if (strpos($requestUri, '/src/php/public/') === 0 || $requestUri === '/src/php/public') {
     $requestUri = substr($requestUri, strlen('/src/php/public')) ?: '/';
 }
 
-// ─── Clean URL: /admin/colleges/{id} → college_dashboard.php?id={id} ──
-// (SRS requirement: Dynamic College Dashboard at /admin/colleges/{college_id})
 $publicDir = __DIR__ . '/src/php/public';
+$realPublicDir = realpath($publicDir);
+
+// ─── 7. Legacy .php URLs: Redirect GET to Clean URL, preserve POST ─
+if (str_ends_with($requestUri, '.php')) {
+    $candidate = $publicDir . $requestUri;
+    $realCandidate = realpath($candidate);
+
+    if ($realCandidate && $realPublicDir && str_starts_with($realCandidate, $realPublicDir) && is_file($realCandidate)) {
+        // GET or HEAD: 301 Permanent Redirect to canonical clean URL
+        if ($method === 'GET' || $method === 'HEAD') {
+            $cleanUri = substr($requestUri, 0, -4);
+            if ($cleanUri === '/index') {
+                $cleanUri = '/';
+            }
+            $target = $cleanUri . (!empty($queryString) ? '?' . $queryString : '');
+            header('Location: ' . $target, true, 301);
+            exit;
+        }
+        // POST or other methods: Serve directly without redirect to preserve data
+        return servePhpScript($realCandidate);
+    }
+}
+
+// ─── 8. Clean Dynamic Route: /admin/colleges/{id} ────────────
 if (preg_match('#^/admin/colleges/(\d+)$#', $requestUri, $m)) {
     $filePath = $publicDir . '/admin/college_dashboard.php';
     if (file_exists($filePath)) {
@@ -153,31 +199,43 @@ if (preg_match('#^/admin/colleges/(\d+)$#', $requestUri, $m)) {
     }
 }
 
-// ─── Map / to src/php/public/ ──────────────────────────────
-$filePath = $publicDir . $requestUri;
+// ─── 9. Clean URL Dispatching for public routes ──────────────
+// Root route /
+if ($requestUri === '/' || $requestUri === '') {
+    return servePhpScript($publicDir . '/index.php');
+}
 
-// If requesting a directory, try index.php
-if (is_dir($filePath)) {
-    $indexPath = rtrim($filePath, '/') . '/index.php';
+// Clean URL match: /student/dashboard -> /student/dashboard.php
+$cleanCandidate = $publicDir . $requestUri . '.php';
+$realClean = realpath($cleanCandidate);
+if ($realClean && $realPublicDir && str_starts_with($realClean, $realPublicDir) && is_file($realClean)) {
+    return servePhpScript($realClean);
+}
+
+// Directory match: /student -> /student/dashboard.php or index.php
+$directPath = $publicDir . $requestUri;
+if (is_dir($directPath)) {
+    $indexPath = rtrim($directPath, '/') . '/index.php';
     if (file_exists($indexPath)) {
         return servePhpScript($indexPath);
     }
-    // Directory listing not allowed
     http_response_code(404);
-    echo "404 Not Found: $requestUri";
+    echo "404 Not Found";
     return true;
 }
 
-// Serve the PHP file or static file from public/
-if (file_exists($filePath) && !is_dir($filePath)) {
-    if (pathinfo($filePath, PATHINFO_EXTENSION) === 'php') {
-        return servePhpScript($filePath);
+// Direct file access in public/ (e.g. static files within public/)
+if (file_exists($directPath) && is_file($directPath)) {
+    $realDirect = realpath($directPath);
+    if ($realDirect && $realPublicDir && str_starts_with($realDirect, $realPublicDir)) {
+        if (pathinfo($realDirect, PATHINFO_EXTENSION) === 'php') {
+            return servePhpScript($realDirect);
+        }
+        return false; // Let PHP built-in server handle non-PHP static files
     }
-    // Serve non-PHP static files within public/
-    return false; // Let PHP built-in server handle it
 }
 
-// 404 fallback
+// ─── 10. 404 Fallback ────────────────────────────────────────
 http_response_code(404);
-echo "404 Not Found: $requestUri";
+echo "404 Not Found: " . htmlspecialchars($requestUri, ENT_QUOTES, 'UTF-8');
 return true;

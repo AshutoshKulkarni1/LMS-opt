@@ -366,16 +366,16 @@ $currentPage = 'dashboard';
                                             }
 
                                             if ($t['submission_status'] === 'evaluated') {
-                                                $actionBtn = '<a href="test.php?test_id=' . $t['id'] . '" class="btn btn-sm btn-ghost">' . icon('chart', 14) . ' View Result</a>';
+                                                $actionBtn = '<a href="test?test_id=' . $t['id'] . '" class="btn btn-sm btn-ghost">' . icon('chart', 14) . ' View Result</a>';
                                             } elseif ($t['submission_status'] === 'submitted') {
                                                 $isPendingReview = ($t['evaluation_status'] ?? '') === 'pending_manual_review';
                                                 $actionBtn = $isPendingReview
                                                     ? '<span class="badge badge-pending">' . icon('clock', 12) . ' Under Evaluation</span>'
                                                     : '<span class="badge badge-pending">' . icon('clock', 12) . ' Submitted</span>';
                                             } elseif ($t['submission_status'] === 'in_progress' && $t['status'] !== 'completed') {
-                                                $actionBtn = '<a href="test.php?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' ' . ($t['status'] === 'paused' ? 'Resume (Paused)' : 'Resume') . '</a>';
+                                                $actionBtn = '<a href="test?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' ' . ($t['status'] === 'paused' ? 'Resume (Paused)' : 'Resume') . '</a>';
                                             } elseif ($t['status'] === 'active' && $canStart) {
-                                                $actionBtn = '<a href="test.php?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' Start Test</a>';
+                                                $actionBtn = '<a href="test?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' Start Test</a>';
                                             } elseif ($t['status'] === 'paused') {
                                                 $actionBtn = '<span class="badge badge-pending">Paused by Admin</span>';
                                             } elseif ($t['status'] === 'upcoming') {
@@ -448,7 +448,7 @@ $currentPage = 'dashboard';
                                                             <?= icon('more-vertical', 14) ?>
                                                         </button>
                                                         <div class="overflow-dropdown">
-                                                            <a href="test.php?test_id=<?= $t['id'] ?>" class="overflow-item"><?= icon('eye', 14) ?> View Details</a>
+                                                            <a href="test?test_id=<?= $t['id'] ?>" class="overflow-item"><?= icon('eye', 14) ?> View Details</a>
                                                             <a href="#" class="overflow-item"><?= icon('clock', 14) ?> View Schedule</a>
                                                             <?php if ($t['submission_status'] === 'evaluated'): ?>
                                                                 <a href="#" class="overflow-item"><?= icon('download', 14) ?> Download Result</a>
@@ -576,16 +576,16 @@ $currentPage = 'dashboard';
                                         $canStart = $startOk && $endOk;
                                     }
                                     if ($t['submission_status'] === 'evaluated') {
-                                        $actionBtn = '<a href="test.php?test_id=' . $t['id'] . '" class="btn btn-sm btn-ghost">' . icon('chart', 14) . ' View Result</a>';
+                                        $actionBtn = '<a href="test?test_id=' . $t['id'] . '" class="btn btn-sm btn-ghost">' . icon('chart', 14) . ' View Result</a>';
                                     } elseif ($t['submission_status'] === 'submitted') {
                                         $isPendingReview = ($t['evaluation_status'] ?? '') === 'pending_manual_review';
                                         $actionBtn = $isPendingReview
                                             ? '<span class="badge badge-pending">' . icon('clock', 12) . ' Under Evaluation</span>'
                                             : '<span class="badge badge-pending">' . icon('clock', 12) . ' Submitted</span>';
                                     } elseif ($t['submission_status'] === 'in_progress' && $t['status'] !== 'completed') {
-                                        $actionBtn = '<a href="test.php?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' ' . ($t['status'] === 'paused' ? 'Resume (Paused)' : 'Resume') . '</a>';
+                                        $actionBtn = '<a href="test?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' ' . ($t['status'] === 'paused' ? 'Resume (Paused)' : 'Resume') . '</a>';
                                     } elseif ($t['status'] === 'active' && $canStart) {
-                                        $actionBtn = '<a href="test.php?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' Start Test</a>';
+                                        $actionBtn = '<a href="test?test_id=' . $t['id'] . '" class="btn btn-sm btn-primary">' . icon('play', 14) . ' Start Test</a>';
                                     } elseif ($t['status'] === 'paused') {
                                         $actionBtn = '<span class="badge badge-pending">Paused by Admin</span>';
                                     } elseif ($t['status'] === 'upcoming') {

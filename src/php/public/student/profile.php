@@ -390,6 +390,7 @@ function toggleTheme() {
     const newTheme = isDark ? 'light' : 'dark';
     html.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000;SameSite=Lax';
     updateThemeUI(newTheme);
 }
 function updateThemeUI(theme) {
@@ -400,11 +401,11 @@ function updateThemeUI(theme) {
     });
 }
 (function() {
-    const saved = localStorage.getItem('theme');
+    const saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2];
     if (saved) {
         document.documentElement.setAttribute('data-theme', saved);
-        const label = document.getElementById('themeLabel');
-        if (label) label.textContent = saved === 'dark' ? 'Light Mode' : 'Dark Mode';
+        updateThemeUI(saved);
+    }
 })();
 </script>
 </body>
