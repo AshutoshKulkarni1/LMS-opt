@@ -12,8 +12,13 @@ require_once __DIR__ . '/../../includes/helpers.php';
 startSession();
 requireAdmin();
 
-$pdo = getDB();
+// Release session lock for AJAX actions to prevent request blocking / lock contention
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
+if ($action !== '') {
+    session_write_close();
+}
+
+$pdo = getDB();
 
 if ($action === 'poll') {
     header('Content-Type: application/json; charset=utf-8');

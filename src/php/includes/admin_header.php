@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Admin layout header — Fluent 2 Enterprise with Neumorphism.
  * Matches admin.png reference design.
@@ -124,12 +124,17 @@ $sidebarCollapsed = $_COOKIE['sidebar_collapsed'] ?? '' === '1';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin — <?= h($pageTitle ?? 'Dashboard') ?> | Test Platform</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/admin.css">
+    <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="<?= ASSETS_URL ?>/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
     <style>
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 100 900;
+            font-display: swap;
+            src: url('<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2') format('woff2');
+            unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
         @font-face {
             font-family: 'Segoe UI Variable Display';
             src: local('Segoe UI Variable Display'), local('Segoe UI');
@@ -140,8 +145,30 @@ $sidebarCollapsed = $_COOKIE['sidebar_collapsed'] ?? '' === '1';
             src: local('Segoe UI Variable Text'), local('Segoe UI');
             font-display: swap;
         }
+        @font-face {
+            font-family: 'Material Symbols Outlined';
+            font-style: normal;
+            font-weight: 300;
+            font-display: swap;
+            src: url('<?= ASSETS_URL ?>/fonts/MaterialSymbolsOutlined.woff2') format('woff2');
+        }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
     </style>
-    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/admin.min.css">
 </head>
 <body>
 <?= iconSprite() ?>

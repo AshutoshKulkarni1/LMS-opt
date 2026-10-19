@@ -39,3 +39,11 @@ strix_runs/
 # Python cache
 __pycache__/
 *.pyc
+
+# Performance benchmarks and session tokens
+headers_*.json
+baseline_*.json
+post_*.json
+optimized_all.json
+lh_network_debug.json
+

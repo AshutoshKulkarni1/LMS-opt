@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $pageTitle = 'Dashboard';
 require_once __DIR__ . '/../../includes/admin_header.php';
 
@@ -127,7 +127,7 @@ $hasRecentActivity = $recentActivityAny->fetchColumn() > 0;
     <!-- Institutions -->
     <div class="stat-card" role="button" tabindex="0" onclick="window.location.href='colleges.php'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
         <div class="stat-card-top">
-            <div class="stat-card-icon blue"><i data-lucide="building2" style="width:22px;height:22px;"></i></div>
+            <div class="stat-card-icon blue"><?= icon('college', 22) ?></div>
             <div class="overflow-menu" onclick="event.stopPropagation();this.classList.toggle('open')">
                     <button class="stat-card-menu" onclick="event.stopPropagation();this.closest('.overflow-menu').classList.toggle('open')"><?= icon("more-vertical", 16) ?></button>
                     <div class="overflow-dropdown">
@@ -224,13 +224,13 @@ $hasRecentActivity = $recentActivityAny->fetchColumn() > 0;
     <!-- Assessment Distribution — Segmented Progress Ring -->
     <div class="analytics-card" id="card-assessment">
         <div class="analytics-card-header">
-            <h3><i data-lucide="chart-pie" style="width:18px;height:18px;"></i> Assessment Distribution</h3>
+            <h3><?= icon('chart', 18) ?> Assessment Distribution</h3>
             <div class="analytics-actions">
                 <span class="badge">By Status</span>
             </div>
         </div>
         <div class="analytics-card-body">
-            <div class="ring-container" id="ring-assessment" data-total="<?= array_sum($testStatusCounts) ?>"
+            <div class="ring-container" id="ring-assessment" style="min-height:240px;" data-total="<?= array_sum($testStatusCounts) ?>"
                  data-labels='<?= json_encode(['Active', 'Upcoming', 'Scheduled', 'Completed']) ?>'
                  data-values='<?= json_encode(array_values($testStatusCounts)) ?>'
                  data-colors='<?= json_encode(['#4F8CFF', '#F59E0B', '#8B5CF6', '#22C55E']) ?>'
@@ -247,13 +247,13 @@ $hasRecentActivity = $recentActivityAny->fetchColumn() > 0;
     <!-- Submission Overview — Segmented Progress Ring -->
     <div class="analytics-card" id="card-submission">
         <div class="analytics-card-header">
-            <h3><i data-lucide="users" style="width:18px;height:18px;"></i> Submission Overview</h3>
+            <h3><?= icon('users', 18) ?> Submission Overview</h3>
             <div class="analytics-actions">
                 <span class="badge">Status Flow</span>
             </div>
         </div>
         <div class="analytics-card-body">
-            <div class="ring-container" id="ring-submission" data-total="<?= array_sum($submissionCounts) ?>"
+            <div class="ring-container" id="ring-submission" style="min-height:240px;" data-total="<?= array_sum($submissionCounts) ?>"
                  data-labels='<?= json_encode(['In Progress', 'Submitted', 'Evaluated']) ?>'
                  data-values='<?= json_encode(array_values($submissionCounts)) ?>'
                  data-colors='<?= json_encode(['#06B6D4', '#F59E0B', '#22C55E']) ?>'

@@ -315,10 +315,12 @@ if ($currentTestId > 0) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
     <script>
     (function() {
-        const labels = <?= json_encode($chartLabels) ?>;
+        function renderMainCharts() {
+            if (typeof Chart === 'undefined') return;
+            const labels = <?= json_encode($chartLabels) ?>;
         const pciScores = <?= json_encode($chartPci) ?>;
         const mcqScores = <?= json_encode($chartMcq) ?>;
         const codingScores = <?= json_encode($chartCoding) ?>;
@@ -459,6 +461,9 @@ if ($currentTestId > 0) {
                 }
             }
         });
+        }
+        if (typeof Chart !== 'undefined') { renderMainCharts(); }
+        else { document.addEventListener('DOMContentLoaded', renderMainCharts); }
     })();
     </script>
 
@@ -501,23 +506,24 @@ if ($currentTestId > 0) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
     <script>
     (function() {
-        const el = document.getElementById('studentRadarChart');
-        if (!el) return;
-        // Destroy-before-create: never stack duplicate instances
-        const existing = Chart.getChart(el);
-        if (existing) existing.destroy();
+        function renderRadarChart() {
+            if (typeof Chart === 'undefined') return;
+            const el = document.getElementById('studentRadarChart');
+            if (!el) return;
+            const existing = Chart.getChart(el);
+            if (existing) existing.destroy();
 
-        window.studentRadarChart = new Chart(el, {
-            type: 'radar',
-            data: {
-                labels: ['MCQ', 'Coding', 'Explanation'],
-                datasets: [{
-                    label: 'Score (%)',
-                    data: [<?= (float)$pr['mcq_score'] ?>, <?= (float)$pr['coding_score'] ?>, <?= (float)$pr['explanation_score'] ?>],
-                    backgroundColor: 'rgba(0,120,212,0.2)',
+            window.studentRadarChart = new Chart(el, {
+                type: 'radar',
+                data: {
+                    labels: ['MCQ', 'Coding', 'Explanation'],
+                    datasets: [{
+                        label: 'Score (%)',
+                        data: [<?= (float)$pr['mcq_score'] ?>, <?= (float)$pr['coding_score'] ?>, <?= (float)$pr['explanation_score'] ?>],
+                        backgroundColor: 'rgba(0,120,212,0.2)',
                     borderColor: '#0078D4',
                     borderWidth: 2,
                     pointBackgroundColor: '#0078D4',
@@ -536,6 +542,9 @@ if ($currentTestId > 0) {
                 }
             }
         });
+        }
+        if (typeof Chart !== 'undefined') { renderRadarChart(); }
+        else { document.addEventListener('DOMContentLoaded', renderRadarChart); }
     })();
     </script>
 

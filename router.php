@@ -11,6 +11,7 @@
  */
 
 // Serve static assets directly
+header('Connection: close');
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // Strip /test-platform prefix if present (for XAMPP URL portability)
@@ -42,11 +43,12 @@ if (strpos($requestUri, '/assets/') === 0) {
         if (isset($mimeTypes[$ext])) {
             header('Content-Type: ' . $mimeTypes[$ext]);
         }
+        header('Cache-Control: public, max-age=31536000, immutable');
 
         $isHead = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD';
 
-        // Gzip compression for eligible static .css and .js responses only
-        $isEligible = in_array(strtolower($ext), ['css', 'js'], true);
+        // Gzip compression for eligible static text responses (css, js, svg, json, xml, txt)
+        $isEligible = in_array(strtolower($ext), ['css', 'js', 'svg', 'json', 'xml', 'txt', 'html'], true);
         if ($isEligible) {
             header('Vary: Accept-Encoding');
 
@@ -96,9 +98,26 @@ if (preg_match('#^/(favicon\.ico|robots\.txt)$#', $requestUri, $m)) {
     $filePath = __DIR__ . '/' . $m[1];
     if (file_exists($filePath)) {
         header('Content-Type: ' . ($m[1] === 'robots.txt' ? 'text/plain' : 'image/x-icon'));
+        header('Cache-Control: public, max-age=86400');
         readfile($filePath);
         return true;
     }
+}
+
+// ─── Helper to serve dynamic PHP scripts with optional Gzip compression ─
+function servePhpScript(string $file): bool {
+    $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
+    $supportsGzip = false;
+    if (preg_match('/(?:^|,)\s*gzip\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
+        $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
+    } elseif (preg_match('/(?:^|,)\s*\*\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
+        $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
+    }
+    if ($supportsGzip && function_exists('ob_gzhandler') && !ini_get('zlib.output_compression')) {
+        ob_start('ob_gzhandler');
+    }
+    require $file;
+    return true;
 }
 
 // ─── Map /api/ and /src/php/api/ to src/php/api/ ────────────
@@ -110,8 +129,7 @@ if (strpos($requestUri, '/api/') === 0 || strpos($requestUri, '/src/php/api/') =
         $filePath = $apiDir . substr($requestUri, strlen('/src/php'));
     }
     if (file_exists($filePath) && !is_dir($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'php') {
-        require $filePath;
-        return true;
+        return servePhpScript($filePath);
     }
     http_response_code(404);
     echo "API endpoint not found: $requestUri";
@@ -131,8 +149,7 @@ if (preg_match('#^/admin/colleges/(\d+)$#', $requestUri, $m)) {
     if (file_exists($filePath)) {
         $_GET['id'] = (int)$m[1];
         $_REQUEST['id'] = $_GET['id'];
-        require $filePath;
-        return true;
+        return servePhpScript($filePath);
     }
 }
 
@@ -143,8 +160,7 @@ $filePath = $publicDir . $requestUri;
 if (is_dir($filePath)) {
     $indexPath = rtrim($filePath, '/') . '/index.php';
     if (file_exists($indexPath)) {
-        require $indexPath;
-        return true;
+        return servePhpScript($indexPath);
     }
     // Directory listing not allowed
     http_response_code(404);
@@ -155,8 +171,7 @@ if (is_dir($filePath)) {
 // Serve the PHP file or static file from public/
 if (file_exists($filePath) && !is_dir($filePath)) {
     if (pathinfo($filePath, PATHINFO_EXTENSION) === 'php') {
-        require $filePath;
-        return true;
+        return servePhpScript($filePath);
     }
     // Serve non-PHP static files within public/
     return false; // Let PHP built-in server handle it

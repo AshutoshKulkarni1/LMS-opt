@@ -97,6 +97,7 @@ $currentPage = 'dashboard';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?> | Test Platform</title>
+    <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <style>
@@ -111,7 +112,7 @@ $currentPage = 'dashboard';
     </style>
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css">
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=swap">
 </head>
 <body>
 <?= iconSprite() ?>
