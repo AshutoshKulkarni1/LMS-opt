@@ -7,8 +7,7 @@
     </div>
 </div>
 
-
-
+<script>
 // ─── Sidebar Toggle (smart: desktop collapse / mobile off-canvas) ─
 function toggleCollapse() {
     const isMobile = window.innerWidth <= 768;

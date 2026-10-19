@@ -2744,7 +2744,6 @@ if (averageChart) {
 <?php endif; ?>
 <?php if ($type === 'average' && $totalEvaluated > 0): ?>
 
-<script>
 document.addEventListener('DOMContentLoaded', function() {
 const averageLabels = <?= json_encode(
     array_map(
