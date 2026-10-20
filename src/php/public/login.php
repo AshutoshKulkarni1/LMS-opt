@@ -15,8 +15,8 @@ require_once __DIR__ . '/../includes/helpers.php';
 startSession();
 
 // If already logged in, redirect (session is open here — fine for a read-only check)
-if (isAdmin()) { redirect('/admin/dashboard.php'); }
-if (isStudent()) { redirect('/student/dashboard.php'); }
+if (isAdmin()) { redirect('/admin/dashboard'); }
+if (isStudent()) { redirect('/student/dashboard'); }
 
 $error = '';
 $verifySid = 0;

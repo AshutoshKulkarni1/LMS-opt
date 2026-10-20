@@ -13,7 +13,9 @@
  * 6. Security: blocks path traversal, null bytes, and sensitive files (.env, config/, storage/).
  */
 
-header('Connection: close');
+if (php_sapi_name() === 'cli-server') {
+    header('Connection: close');
+}
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 $queryString = $_SERVER['QUERY_STRING'] ?? '';
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -123,19 +125,21 @@ if (preg_match('#^/(favicon\.ico|robots\.txt)$#', $requestUri, $m)) {
 }
 
 // ─── 5. Helper to serve dynamic PHP scripts with Gzip ────────
-function servePhpScript(string $file): bool {
-    $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
-    $supportsGzip = false;
-    if (preg_match('/(?:^|,)\s*gzip\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
-        $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
-    } elseif (preg_match('/(?:^|,)\s*\*\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
-        $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
+if (!function_exists('servePhpScript')) {
+    function servePhpScript(string $file): bool {
+        $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
+        $supportsGzip = false;
+        if (preg_match('/(?:^|,)\s*gzip\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
+            $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
+        } elseif (preg_match('/(?:^|,)\s*\*\s*(?:;\s*q\s*=\s*([0-9.]+))?/i', $acceptEncoding, $m)) {
+            $supportsGzip = !isset($m[1]) || (float)$m[1] > 0;
+        }
+        if ($supportsGzip && function_exists('ob_gzhandler') && !ini_get('zlib.output_compression')) {
+            ob_start('ob_gzhandler');
+        }
+        require $file;
+        return true;
     }
-    if ($supportsGzip && function_exists('ob_gzhandler') && !ini_get('zlib.output_compression')) {
-        ob_start('ob_gzhandler');
-    }
-    require $file;
-    return true;
 }
 
 // ─── 6. Map /api/ and /src/php/api/ to src/php/api/ ──────────
@@ -200,24 +204,30 @@ if (preg_match('#^/admin/colleges/(\d+)$#', $requestUri, $m)) {
 }
 
 // ─── 9. Clean URL Dispatching for public routes ──────────────
-// Root route /
-if ($requestUri === '/' || $requestUri === '') {
+$trimmedUri = rtrim($requestUri, '/') ?: '/';
+
+// Root route / or /index
+if ($trimmedUri === '/' || $trimmedUri === '/index') {
     return servePhpScript($publicDir . '/index.php');
 }
 
-// Clean URL match: /student/dashboard -> /student/dashboard.php
-$cleanCandidate = $publicDir . $requestUri . '.php';
+// Clean URL match: /student/dashboard -> /student/dashboard.php, /login -> /login.php
+$cleanCandidate = $publicDir . $trimmedUri . '.php';
 $realClean = realpath($cleanCandidate);
 if ($realClean && $realPublicDir && str_starts_with($realClean, $realPublicDir) && is_file($realClean)) {
     return servePhpScript($realClean);
 }
 
-// Directory match: /student -> /student/dashboard.php or index.php
-$directPath = $publicDir . $requestUri;
-if (is_dir($directPath)) {
-    $indexPath = rtrim($directPath, '/') . '/index.php';
+// Directory match: /student -> /student/dashboard or /admin -> /admin/dashboard
+$directPath = $publicDir . $trimmedUri;
+if (is_dir($directPath) && $directPath !== $publicDir) {
+    $indexPath = $directPath . '/index.php';
+    $dashPath = $directPath . '/dashboard.php';
     if (file_exists($indexPath)) {
         return servePhpScript($indexPath);
+    } elseif (file_exists($dashPath)) {
+        header('Location: ' . $trimmedUri . '/dashboard', true, 302);
+        exit;
     }
     http_response_code(404);
     echo "404 Not Found";
@@ -231,7 +241,11 @@ if (file_exists($directPath) && is_file($directPath)) {
         if (pathinfo($realDirect, PATHINFO_EXTENSION) === 'php') {
             return servePhpScript($realDirect);
         }
-        return false; // Let PHP built-in server handle non-PHP static files
+        if (php_sapi_name() === 'cli-server') {
+            return false; // Let PHP built-in server handle non-PHP static files
+        }
+        readfile($realDirect);
+        exit;
     }
 }
 
