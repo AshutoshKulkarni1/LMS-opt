@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Fluent 2 Test Platform - Database Configuration
  * 
@@ -121,6 +121,37 @@ function initSchemaIfEmpty(PDO $pdo): void {
 }
 
 /**
+ * Automatically load demo seed data if AUTO_SEED=true is set in environment
+ * and database has 0 colleges.
+ */
+function initSeedIfRequested(PDO $pdo): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+
+    $autoSeed = getenv('AUTO_SEED');
+    if ($autoSeed !== 'true' && $autoSeed !== '1') {
+        return;
+    }
+
+    try {
+        $count = (int)$pdo->query("SELECT COUNT(*) FROM colleges")->fetchColumn();
+        if ($count === 0) {
+            $seederFile = __DIR__ . '/../../../sql/seed_test_data.php';
+            if (file_exists($seederFile)) {
+                require_once $seederFile;
+                if (function_exists('runDatabaseSeeder')) {
+                    runDatabaseSeeder($pdo, false);
+                    error_log('Auto-seed: Successfully seeded empty database on startup.');
+                }
+            }
+        }
+    } catch (Throwable $t) {
+        error_log('Auto-seed failed: ' . $t->getMessage());
+    }
+}
+
+/**
  * Get PDO database connection.
  * All queries MUST use this with prepared statements.
  */
@@ -136,6 +167,7 @@ function getDB(): PDO {
                 PDO::ATTR_TIMEOUT            => 5,
             ]);
             initSchemaIfEmpty($pdo);
+            initSeedIfRequested($pdo);
         } catch (PDOException $e) {
             error_log('Database connection failed: ' . $e->getMessage());
             if (ini_get('display_errors') === '1') {

@@ -84,6 +84,7 @@ services:
     volumes:
       - ./assets:/var/www/html/assets
       - ./src:/var/www/html/src
+      - ./sql:/var/www/html/sql
       - storage_data:/var/www/html/src/php/storage
     depends_on:
       mariadb:
