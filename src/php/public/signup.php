@@ -100,6 +100,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register — Test Platform</title>
+    <meta name="description" content="Create your student account on the Test Platform to take assessments, track your test scores, and receive real-time academic performance analytics.">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {

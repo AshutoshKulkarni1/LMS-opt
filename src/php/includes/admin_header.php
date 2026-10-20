@@ -122,12 +122,40 @@ function isNavActive(string $itemUrl, string $currentPage, string $currentTab): 
 }
 
 $sidebarCollapsed = $_COOKIE['sidebar_collapsed'] ?? '' === '1';
+
+$adminDescriptions = [
+    'dashboard'             => 'Administrative dashboard providing platform-wide statistics, active assessments, recent submissions, and performance metrics.',
+    'assessment_management' => 'Manage existing tests, view assessment status, update schedules, and monitor student participation across all batches.',
+    'assessment_studio'     => 'Create, configure, and publish comprehensive assessments with automated and manual grading rules.',
+    'test_builder'          => 'Design and build structured tests, configure sections, and define question parameters for batch assessments.',
+    'question_library'      => 'Centralized repository of assessment questions, tags, difficulty levels, and syllabus topics.',
+    'live_monitor'          => 'Real-time proctoring and live monitoring of active student test sessions and progress.',
+    'tab_switcher'          => 'Monitor and review student window focus, tab-switching infractions, and proctoring logs during active tests.',
+    'grading'               => 'Review, evaluate, and assign scores to student subjective and coding assessment submissions.',
+    'reports'               => 'Detailed PCI analytics, score distribution charts, and batch performance reports across assessments.',
+    'students'              => 'Manage student directory, view enrollment records, track batch affiliations, and manage student accounts.',
+    'pending_verifications' => 'Review pending student email verifications, approve or clean unverified registration attempts.',
+    'colleges'              => 'Manage affiliated institutions, view college profiles, departments, and course offerings.',
+    'college_create'        => 'Register and onboard a new college or institution with departments and administrator accounts.',
+    'college_dashboard'     => 'Institution-level dashboard displaying enrolled student counts, active batches, and college test results.',
+    'courses'               => 'Manage academic courses, degree programs, and curriculum associations for each college.',
+    'batches'               => 'Organize and manage student cohorts, academic years, and section assignments across courses.',
+    'notifications'         => 'Broadcast and manage platform announcements, test reminders, and system notifications.',
+    'activity_logs'         => 'Audit trail and system event logs capturing administrative actions and security events.',
+    'failed_logins'         => 'Security monitor tracking failed authentication attempts and brute-force lockouts.',
+    'settings'              => 'System settings, database maintenance utilities, and platform configuration options.',
+    'help'                  => 'Administrator documentation, workflow guides, and platform usage references.',
+];
+$adminPageKey = preg_replace('/\.php$/', '', $currentPage);
+$pageDescription = $pageDescription ?? ($adminDescriptions[$adminPageKey] ?? 'Administrative portal for managing assessments, students, and platform configurations.');
 ?><!DOCTYPE html>
 <html lang="en" data-compact="true"<?= isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark' ? ' data-theme="dark"' : '' ?>>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin — <?= h($pageTitle ?? 'Dashboard') ?> | Test Platform</title>
+    <meta name="description" content="<?= h($pageDescription) ?>">
+    <meta name="robots" content="noindex, nofollow">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
     <style>

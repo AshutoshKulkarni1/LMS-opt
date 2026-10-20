@@ -76,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In — Test Platform</title>
+    <meta name="description" content="Sign in to the Test Platform to access your assessments, review evaluation results, track performance analytics, or manage academic courses.">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {

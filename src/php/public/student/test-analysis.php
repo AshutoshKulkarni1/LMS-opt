@@ -248,6 +248,8 @@ $currentPage = 'test-analysis';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title><?= h($pageTitle) ?> | Test Platform</title>
+    <meta name="description" content="Comprehensive assessment analysis covering accuracy rates, topic strengths, improvement areas, and question difficulty breakdown.">
+    <meta name="robots" content="noindex, nofollow">
 
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">

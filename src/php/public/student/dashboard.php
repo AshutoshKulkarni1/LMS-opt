@@ -97,6 +97,8 @@ $currentPage = 'dashboard';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?> | Test Platform</title>
+    <meta name="description" content="Access your student assessment dashboard to view scheduled tests, track active test progress, and review your recent test completions.">
+    <meta name="robots" content="noindex, nofollow">
     <!-- Local Variable Font Preload (Latin Variable WOFF2, ~48KB) -->
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <style>

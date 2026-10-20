@@ -77,6 +77,8 @@ $currentPage = 'analytics';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?> | Test Platform</title>
+    <meta name="description" content="Explore your academic progress with Performance Index trends, section-wise score distributions, and longitudinal growth charts.">
+    <meta name="robots" content="noindex, nofollow">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
     <!-- Non-critical Chatbot Stylesheet (deferred to avoid render blocking) -->

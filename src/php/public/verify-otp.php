@@ -119,6 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Email — Test Platform</title>
+    <meta name="description" content="Verify your email address with a 6-digit one-time passcode to activate your Test Platform student account and start taking assessments.">
+    <meta name="robots" content="noindex, nofollow">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {

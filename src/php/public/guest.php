@@ -45,6 +45,7 @@ if (!empty($token)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guest Access — Test Platform</title>
+    <meta name="description" content="Enter or scan your guest access token to take scheduled assessments and tests directly on the Test Platform without logging in.">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {
