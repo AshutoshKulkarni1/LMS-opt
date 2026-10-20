@@ -29,12 +29,33 @@ if ($isProduction) {
     error_reporting(E_ALL);
 }
 
-// Database credentials — ALL values come from .env / platform environment variables
-define('DB_HOST', env('DB_HOST', '127.0.0.1'));
-define('DB_PORT', env('DB_PORT', '3306'));
-define('DB_NAME', env('DB_NAME', 'test_platform'));
-define('DB_USER', env('DB_USER', 'root'));
-define('DB_PASS', env('DB_PASS', ''));
+// ─── Cloud & Container Database Environment Variable Detection ───
+// Supports Railway, Render, Fly.io, Heroku, Docker Compose, and custom .env
+
+// 1. Connection URLs (DATABASE_URL, MYSQL_URL, MARIADB_URL)
+$rawDbUrl = env('DATABASE_URL', env('MYSQL_URL', env('MARIADB_URL')));
+$urlHost = null; $urlPort = null; $urlName = null; $urlUser = null; $urlPass = null;
+if (!empty($rawDbUrl)) {
+    $parsed = parse_url($rawDbUrl);
+    if (!empty($parsed['host'])) $urlHost = $parsed['host'];
+    if (!empty($parsed['port'])) $urlPort = (string)$parsed['port'];
+    if (!empty($parsed['user'])) $urlUser = urldecode($parsed['user']);
+    if (isset($parsed['pass']))  $urlPass = urldecode($parsed['pass']);
+    if (!empty($parsed['path'])) $urlName = ltrim(urldecode($parsed['path']), '/');
+}
+
+// 2. Individual environment variables (checks cloud provider keys then LMS keys)
+$dbHost = env('DB_HOST', $urlHost ?? env('MYSQLHOST', env('MYSQL_HOST', env('MARIADB_HOST', '127.0.0.1'))));
+$dbPort = env('DB_PORT', $urlPort ?? env('MYSQLPORT', env('MYSQL_PORT', env('MARIADB_PORT', '3306'))));
+$dbName = env('DB_NAME', $urlName ?? env('MYSQLDATABASE', env('MYSQL_DATABASE', env('MARIADB_DATABASE', 'test_platform'))));
+$dbUser = env('DB_USER', $urlUser ?? env('MYSQLUSER', env('MYSQL_USER', env('MARIADB_USER', 'root'))));
+$dbPass = env('DB_PASS', $urlPass ?? env('DB_PASSWORD', env('MYSQLPASSWORD', env('MYSQL_PASSWORD', env('MARIADB_PASSWORD', '')))));
+
+define('DB_HOST', $dbHost);
+define('DB_PORT', $dbPort);
+define('DB_NAME', $dbName);
+define('DB_USER', $dbUser);
+define('DB_PASS', $dbPass);
 
 define('PYTHON_API_URL', env('PYTHON_API_URL', 'http://127.0.0.1:5000'));
 
@@ -52,6 +73,33 @@ define('BASE_URL', env('BASE_URL', $defaultBaseUrl));
 define('ASSETS_URL', env('ASSETS_URL', $defaultAssetsUrl));
 
 /**
+ * Automatically initialize database schema if connected to an empty cloud database.
+ * Does NOT alter or touch an existing database.
+ */
+function initSchemaIfEmpty(PDO $pdo): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+
+    try {
+        $check = $pdo->query("SHOW TABLES LIKE 'admins'")->fetch();
+        if ($check) {
+            return; // Schema already exists — preserve completely
+        }
+
+        $sqlFile = __DIR__ . '/../../../docker/mariadb/init.sql';
+        if (file_exists($sqlFile)) {
+            $sql = file_get_contents($sqlFile);
+            $sql = preg_replace('/CREATE\s+DATABASE[^;]+;/i', '', $sql);
+            $sql = preg_replace('/USE\s+[^;]+;/i', '', $sql);
+            $pdo->exec($sql);
+        }
+    } catch (Throwable $t) {
+        error_log('Schema initialization check skipped: ' . $t->getMessage());
+    }
+}
+
+/**
  * Get PDO database connection.
  * All queries MUST use this with prepared statements.
  */
@@ -64,15 +112,15 @@ function getDB(): PDO {
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
+                PDO::ATTR_TIMEOUT            => 5,
             ]);
+            initSchemaIfEmpty($pdo);
         } catch (PDOException $e) {
-            // Server-side logging without credentials
             error_log('Database connection failed: ' . $e->getMessage());
             if (ini_get('display_errors') === '1') {
                 throw $e;
             }
-            http_response_code(500);
-            die('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Service Unavailable</title><style>body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}.c{background:#1e293b;padding:32px;border-radius:12px;border:1px solid #334155;text-align:center;max-width:440px;box-shadow:0 10px 25px rgba(0,0,0,0.5);}h2{margin-top:0;font-size:20px;}p{color:#94a3b8;font-size:14px;line-height:1.5;}</style></head><body><div class="c"><h2>Service Temporarily Unavailable</h2><p>Unable to establish a database connection. Please try again later or contact the administrator.</p></div></body></html>');
+            throw new PDOException('Unable to establish a database connection: ' . $e->getMessage(), (int)$e->getCode(), $e);
         }
     }
     return $pdo;
@@ -102,5 +150,14 @@ if (!function_exists('__registerNotificationHandlers')) {
             $safeMsg = function_exists('sanitizeSensitiveString') ? sanitizeSensitiveString($e->getMessage()) : $e->getMessage();
             notifyAdmin('system', 'Uncaught Exception', $safeMsg . ' — ' . basename($e->getFile()) . ':' . $e->getLine());
         }
+        if (!headers_sent()) {
+            http_response_code(500);
+        }
+        if (ini_get('display_errors') === '1') {
+            echo '<pre>' . htmlspecialchars((string)$e) . '</pre>';
+        } else {
+            echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Service Unavailable</title><style>body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}.c{background:#1e293b;padding:32px;border-radius:12px;border:1px solid #334155;text-align:center;max-width:440px;box-shadow:0 10px 25px rgba(0,0,0,0.5);}h2{margin-top:0;font-size:20px;}p{color:#94a3b8;font-size:14px;line-height:1.5;}</style></head><body><div class="c"><h2>Service Temporarily Unavailable</h2><p>Unable to establish a database connection. Please try again later or contact the administrator.</p></div></body></html>';
+        }
+        exit;
     });
 }
