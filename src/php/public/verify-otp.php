@@ -22,9 +22,10 @@ if (!$pending || empty($pending['student_id']) || empty($pending['email'])) {
 
 $studentId = (int)$pending['student_id'];
 $email     = (string)$pending['email'];
-$error     = '';
-$success   = '';
-$warning   = $_SESSION['otp_warning'] ?? '';
+$error           = '';
+$verifiedSuccess = '';
+$resendSuccess   = '';
+$warning         = $_SESSION['otp_warning'] ?? '';
 unset($_SESSION['otp_warning']);
 
 // Check student record in database
@@ -41,14 +42,14 @@ try {
             $_SESSION['pending_verification']['name'] = $studentName;
         }
     } else {
-        // Check if student was already verified
-        $stmt = $pdo->prepare("SELECT name FROM students WHERE id = ?");
-        $stmt->execute([$studentId]);
+        // Check if student was already verified (lookup by email, not unverified table id)
+        $stmt = $pdo->prepare("SELECT name FROM students WHERE email = ?");
+        $stmt->execute([$email]);
         $verified = $stmt->fetch();
         if ($verified) {
             unset($_SESSION['pending_verification']);
             $studentName = $verified['name'];
-            $success = 'Email already verified! You can sign in now.';
+            $verifiedSuccess = 'Email already verified! You can sign in now.';
         } else {
             unset($_SESSION['pending_verification']);
             redirect('/signup');
@@ -84,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 if ($result['success']) {
                     unset($_SESSION['pending_verification']);
                     session_regenerate_id(true);
-                    $success = 'Email verified successfully! You can now sign in.';
+                    $verifiedSuccess = 'Email verified successfully! You can now sign in.';
                 } else {
                     if ($newAttempts >= 5) {
                         invalidateStudentOtp($studentId);
@@ -105,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $_SESSION['pending_verification']['last_sent_at'] = time();
                 $_SESSION['pending_verification']['attempts'] = 0; // Reset attempts for new challenge
                 $cooldownRemaining = 60;
-                $success = 'A new OTP has been sent to your email.';
+                $resendSuccess = 'A new OTP has been sent to your email. Please enter it below.';
             } else {
                 $error = $result['error'] ?? 'Failed to resend OTP. Please try again.';
             }
@@ -181,14 +182,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             </div>
         <?php endif; ?>
 
-        <?php if ($success): ?>
-            <div class="auth-alert success">
+        <?php if ($resendSuccess && !$error && !$verifiedSuccess): ?>
+            <div class="auth-alert success" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M16.7 5.3a1 1 0 0 0-1.4 0L8 12.6 4.7 9.3a1 1 0 0 0-1.4 1.4l4 4a1 1 0 0 0 1.4 0l8-8a1 1 0 0 0 0-1.4z"/></svg>
-                <span><?= h($success) ?><br><a href="<?= BASE_URL ?>/login" class="text-accent" style="text-decoration:underline;margin-top:4px;display:inline-block;">Sign in</a></span>
+                <span><?= h($resendSuccess) ?></span>
             </div>
         <?php endif; ?>
 
-        <?php if (!$success): ?>
+        <?php if ($verifiedSuccess): ?>
+            <div class="auth-alert success">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M16.7 5.3a1 1 0 0 0-1.4 0L8 12.6 4.7 9.3a1 1 0 0 0-1.4 1.4l4 4a1 1 0 0 0 1.4 0l8-8a1 1 0 0 0 0-1.4z"/></svg>
+                <span><?= h($verifiedSuccess) ?><br><a href="<?= BASE_URL ?>/login" class="text-accent" style="text-decoration:underline;margin-top:4px;display:inline-block;">Sign in</a></span>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$verifiedSuccess): ?>
         <form method="POST" id="otpForm">
             <?= csrfField() ?>
             <input type="hidden" name="action" value="verify">
