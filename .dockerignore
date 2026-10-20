@@ -46,4 +46,7 @@ strix_runs/
 .claude/
 
 # Docker build files not needed inside the web image
-docker/mariadb/
+# NOTE: docker/mariadb/ is intentionally NOT excluded here —
+# init.sql must be present in the image for schema auto-initialization
+# when connecting to a fresh Railway MySQL database.
+# docker/mariadb/

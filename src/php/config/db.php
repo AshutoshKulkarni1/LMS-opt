@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Fluent 2 Test Platform - Database Configuration
  * 
@@ -88,14 +88,35 @@ function initSchemaIfEmpty(PDO $pdo): void {
         }
 
         $sqlFile = __DIR__ . '/../../../docker/mariadb/init.sql';
-        if (file_exists($sqlFile)) {
-            $sql = file_get_contents($sqlFile);
-            $sql = preg_replace('/CREATE\s+DATABASE[^;]+;/i', '', $sql);
-            $sql = preg_replace('/USE\s+[^;]+;/i', '', $sql);
-            $pdo->exec($sql);
+        if (!file_exists($sqlFile)) {
+            error_log('Schema init: init.sql not found at ' . $sqlFile);
+            return;
         }
+
+        $sql = file_get_contents($sqlFile);
+        // Strip CREATE DATABASE and USE statements — Railway DB already exists
+        $sql = preg_replace('/CREATE\s+DATABASE[^;]+;/i', '', $sql);
+        $sql = preg_replace('/USE\s+[^;]+;/i', '', $sql);
+
+        // PDO::exec() silently stops after the first statement when given
+        // multi-statement SQL. Split on semicolons and run each individually.
+        $executed = 0;
+        foreach (explode(';', $sql) as $stmt) {
+            $stmt = trim($stmt);
+            if ($stmt === '' || preg_match('/^[\s\-\#]*$/', $stmt)) {
+                continue; // skip blank / comment-only chunks
+            }
+            try {
+                $pdo->exec($stmt);
+                $executed++;
+            } catch (Throwable $stmtErr) {
+                // Log but continue — ALTER TABLE migrations may already be applied
+                error_log('Schema init stmt error: ' . $stmtErr->getMessage() . ' | SQL: ' . substr($stmt, 0, 120));
+            }
+        }
+        error_log("Schema initialized from init.sql ({$executed} statements executed)");
     } catch (Throwable $t) {
-        error_log('Schema initialization check skipped: ' . $t->getMessage());
+        error_log('Schema initialization failed: ' . $t->getMessage());
     }
 }
 

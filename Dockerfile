@@ -1,21 +1,21 @@
 # ============================================================
 # LMS / Test Platform - PHP 8.2 CLI Built-in Server
 # ============================================================
-# Replaces the PHP+Apache image to eliminate recurring MPM
-# conflicts on Railway. PHP's built-in server is used as a
-# lightweight demo/staging host (not intended for high-traffic
-# production use).
+# Replaces PHP+Apache to eliminate recurring Apache MPM conflicts.
+# PHP's built-in server (via router.php) is used for demo/staging.
 #
-# Serves: clean URLs, PHP pages, static assets, POST, API
-# via router.php (already written for cli-server).
+# Verified extensions: pdo_mysql, mbstring, zip
+# Routing: router.php handles clean URLs, static assets, API, POST
+# Port: reads $PORT from Railway environment (default 8080)
+# Schema: docker/mariadb/init.sql is present for auto-init on fresh DB
 # ============================================================
 FROM php:8.2-cli
 
-# Install required system libraries and PHP extensions.
-# - pdo_mysql : database access (PDO MySQL/MariaDB driver)
-# - mbstring  : multibyte string functions used throughout the app
-# - zip       : (optional) ZipArchive if any admin export features need it
-# json, gzip/zlib, openssl are built into the cli image.
+# Install system libraries and PHP extensions
+# pdo_mysql  — database access (required, Railway MySQL)
+# mbstring   — multibyte string ops used throughout the app
+# zip        — ZipArchive for any export/import features
+# json, zlib, openssl are built into the cli image already
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libonig-dev \
         libzip-dev \
@@ -28,26 +28,38 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Verify pdo_mysql is present in the final runtime image
+# Build-time verification — fails the build if pdo_mysql is missing
 RUN php -m | grep -q pdo_mysql \
     && php --ri pdo_mysql \
-    && echo "pdo_mysql OK"
+    && echo "✔ pdo_mysql OK"
 
-# Set working directory to web root
+# PHP runtime configuration
+RUN { \
+        echo 'error_reporting = E_ALL'; \
+        echo 'log_errors = On'; \
+        echo 'display_errors = Off'; \
+        echo 'display_startup_errors = Off'; \
+        echo 'session.cookie_httponly = 1'; \
+        echo 'session.use_strict_mode = 1'; \
+        echo 'post_max_size = 16M'; \
+        echo 'upload_max_filesize = 16M'; \
+        echo 'max_execution_time = 60'; \
+        echo 'memory_limit = 128M'; \
+    } > /usr/local/etc/php/conf.d/lms.ini
+
+# Set working directory
 WORKDIR /var/www/html
 
-# Copy all project files
+# Copy all project files (docker/mariadb/init.sql IS included — see .dockerignore)
 COPY . /var/www/html/
 
-# Create and configure writable storage directories
+# Create writable storage directories
 RUN mkdir -p /var/www/html/src/php/storage/logs \
-    && chown -R www-data:www-data /var/www/html/src/php/storage \
-    && chmod -R 775 /var/www/html/src/php/storage
+    && chmod -R 777 /var/www/html/src/php/storage
 
-# Expose default port (Railway overrides this via $PORT env var)
+# Expose default port
 EXPOSE 8080
 
-# Start PHP built-in server on all interfaces.
-# PORT is injected by Railway at runtime. Defaults to 8080 if not set.
-# router.php handles: clean URLs, static assets, API endpoints, security.
-CMD ["sh", "-c", "exec php -S 0.0.0.0:${PORT:-8080} router.php"]
+# Start PHP built-in server.
+# Railway injects $PORT at runtime. router.php handles all routing.
+CMD ["sh", "-c", "exec php -S 0.0.0.0:${PORT:-8080} /var/www/html/router.php"]
