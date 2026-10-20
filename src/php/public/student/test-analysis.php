@@ -547,10 +547,17 @@ $currentPage = 'test-analysis';
 
 <div class="student-main">
 
-    <!-- Page Header -->
-    <div class="welcome-section">
+    <!-- Page Header with Back Navigation -->
+    <div class="welcome-section" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px;">
 
         <div class="welcome-text">
+
+            <div style="margin-bottom: 10px;">
+                <a href="<?= BASE_URL ?>/student/results.php" class="back-link" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 8px; background: var(--accent-bg); border: 1px solid var(--border-color); transition: background 0.15s ease;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                    <span>Back to Results</span>
+                </a>
+            </div>
 
             <h1 class="welcome-heading">
                 Test Analysis
@@ -911,38 +918,6 @@ function applyChartTheme(isDark) {
         pciChartInstance.update();
     }
 }
-
-function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000';
-
-    updateThemeUI(newTheme);
-    applyChartTheme(newTheme === 'dark');
-}
-
-function updateThemeUI(theme) {
-    const label = document.getElementById('themeLabel');
-    if (label) {
-        label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
-    }
-    document.querySelectorAll('.theme-icon').forEach(el => {
-        el.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
-    });
-}
-
-// Restore saved theme
-(function() {
-    const saved = localStorage.getItem('theme');
-    if (saved) {
-        document.documentElement.setAttribute('data-theme', saved);
-        updateThemeUI(saved);
-    }
-})();
 
 // ============================================================
 // ANALYSIS CHARTS

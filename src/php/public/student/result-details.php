@@ -337,16 +337,13 @@ switch ($type) {
         <?= h($pageTitle) ?> | Test Platform
     </title>
 
-    <link
-        rel="stylesheet"
-        href="<?= ASSETS_URL ?>/css/student.css"
-    >
+    <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
 
     <!-- Non-critical Chatbot Stylesheet (deferred to avoid render blocking) -->
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/chatbot.css') ? filemtime(__DIR__ . '/../../../../assets/css/chatbot.css') : time() ?>" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css"></noscript>
 
-    <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {
             font-family: 'Inter';
@@ -2512,80 +2509,7 @@ function closeSidebar() {
 }
 
 
-/* ---------------------------------------------------------
-   THEME
---------------------------------------------------------- */
 
-function toggleTheme() {
-
-    const html =
-        document.documentElement;
-
-    const isDark =
-        html.getAttribute('data-theme') === 'dark';
-
-    const newTheme =
-        isDark ? 'light' : 'dark';
-
-    html.setAttribute(
-        'data-theme',
-        newTheme
-    );
-
-    localStorage.setItem(
-        'theme',
-        newTheme
-    );
-
-    updateThemeUI(newTheme);
-}
-
-
-function updateThemeUI(theme) {
-
-    const label =
-        document.getElementById('themeLabel');
-
-    if (label) {
-
-        label.textContent =
-            theme === 'dark'
-                ? 'Light Mode'
-                : 'Dark Mode';
-
-    }
-
-    document
-        .querySelectorAll('.theme-icon')
-        .forEach(el => {
-
-            el.textContent =
-                theme === 'dark'
-                    ? 'light_mode'
-                    : 'dark_mode';
-
-        });
-}
-
-
-(function() {
-
-    const saved =
-        localStorage.getItem('theme');
-
-    if (saved) {
-
-        document.documentElement
-            .setAttribute(
-                'data-theme',
-                saved
-            );
-
-        updateThemeUI(saved);
-
-    }
-
-})();
 
 
 /* ---------------------------------------------------------

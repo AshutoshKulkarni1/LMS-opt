@@ -383,29 +383,6 @@ document.addEventListener('keydown', function(e) {
         else if (!e.shiftKey && document.activeElement === f[f.length-1]) { e.preventDefault(); f[0].focus(); }
     }
 });
-function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000;SameSite=Lax';
-    updateThemeUI(newTheme);
-}
-function updateThemeUI(theme) {
-    const label = document.getElementById('themeLabel');
-    if (label) label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
-    document.querySelectorAll('.theme-icon').forEach(el => {
-        el.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
-    });
-}
-(function() {
-    const saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2];
-    if (saved) {
-        document.documentElement.setAttribute('data-theme', saved);
-        updateThemeUI(saved);
-    }
-})();
 </script>
 </body>
 </html>

@@ -31,43 +31,70 @@ $currentNav = $pageToNavMap[$currentPage] ?? $currentPage;
 ?>
 <script>
 (function() {
-    var saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2];
+    var saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2] || 'light';
     if (saved) {
         document.documentElement.setAttribute('data-theme', saved);
     }
 })();
-if (typeof toggleTheme !== 'function') {
-    window.toggleTheme = function() {
-        var html = document.documentElement;
-        var isDark = html.getAttribute('data-theme') === 'dark';
-        var newTheme = isDark ? 'light' : 'dark';
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000;SameSite=Lax';
-        updateThemeUI(newTheme);
-        if (typeof applyChartTheme === 'function') {
-            applyChartTheme(newTheme === 'dark');
-        }
-    };
-}
-if (typeof updateThemeUI !== 'function') {
-    window.updateThemeUI = function(theme) {
-        var isDark = theme === 'dark';
-        var label = document.getElementById('themeLabel');
-        if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-        var sunSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
-        var moonSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>';
-        document.querySelectorAll('.theme-icon').forEach(function(el) {
-            el.innerHTML = isDark ? sunSvg : moonSvg;
-        });
-    };
-}
-document.addEventListener('DOMContentLoaded', function() {
-    var saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2];
-    if (saved) {
-        document.documentElement.setAttribute('data-theme', saved);
-        updateThemeUI(saved);
+
+window.updateThemeUI = function(theme) {
+    var isDark = theme === 'dark';
+    var label = document.getElementById('themeLabel');
+    if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    var sunSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    var moonSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>';
+    document.querySelectorAll('.theme-icon').forEach(function(el) {
+        el.innerHTML = isDark ? sunSvg : moonSvg;
+    });
+
+    var newAriaLabel = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+    document.querySelectorAll('button.topnav-icon-btn').forEach(function(btn) {
+        btn.setAttribute('aria-label', newAriaLabel);
+    });
+    var sidebarThemeBtn = document.getElementById('themeToggle');
+    if (sidebarThemeBtn) {
+        sidebarThemeBtn.setAttribute('aria-label', newAriaLabel);
     }
+};
+
+window.toggleTheme = function() {
+    var html = document.documentElement;
+    var isDark = html.getAttribute('data-theme') === 'dark';
+    var newTheme = isDark ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.cookie = 'theme=' + newTheme + ';path=/;max-age=31536000;SameSite=Lax';
+    window.updateThemeUI(newTheme);
+    if (typeof applyChartTheme === 'function') {
+        applyChartTheme(newTheme === 'dark');
+    }
+};
+
+window.toggleSidebar = function(forceState) {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebarOverlay');
+    if (!sidebar || !overlay) return;
+    var isOpen = forceState !== undefined ? forceState : !sidebar.classList.contains('open');
+    sidebar.classList.toggle('open', isOpen);
+    overlay.classList.toggle('show', isOpen);
+    document.body.classList.toggle('sidebar-open', isOpen);
+    sidebar.setAttribute('aria-hidden', !isOpen);
+};
+
+window.closeSidebar = function() {
+    window.toggleSidebar(false);
+};
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        window.closeSidebar();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    var saved = localStorage.getItem('theme') || (document.cookie.match(/(^|; )theme=([^;]+)/) || [])[2] || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    window.updateThemeUI(saved);
 });
 </script>
 
@@ -226,9 +253,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     onclick="toggleTheme()"
                     id="themeToggle"
                     type="button"
+                    aria-label="Switch to dark mode"
                 >
                     <span class="theme-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
                     </span>
 
                     <span id="themeLabel">
@@ -328,9 +356,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     onclick="toggleTheme()"
                     data-tooltip="Toggle theme"
                     type="button"
+                    aria-label="Switch to dark mode"
                 >
                     <span class="theme-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
                     </span>
                 </button>
 

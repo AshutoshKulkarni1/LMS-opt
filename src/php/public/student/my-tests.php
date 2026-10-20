@@ -215,6 +215,7 @@ function calculatePercentage(array $test): ?int
     >
 
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
     <style>
         @font-face {
             font-family: 'Inter';
@@ -1374,108 +1375,7 @@ if (statusFilter) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| Theme Switcher
-|--------------------------------------------------------------------------
-*/
 
-function toggleTheme() {
-
-    const html =
-        document.documentElement;
-
-    const isDark =
-        html.getAttribute(
-            'data-theme'
-        ) === 'dark';
-
-    const newTheme =
-        isDark
-            ? 'light'
-            : 'dark';
-
-
-    html.setAttribute(
-        'data-theme',
-        newTheme
-    );
-
-    localStorage.setItem(
-        'theme',
-        newTheme
-    );
-
-    updateThemeUI(
-        newTheme
-    );
-
-}
-
-
-function updateThemeUI(theme) {
-
-    const label =
-        document.getElementById(
-            'themeLabel'
-        );
-
-    if (label) {
-
-        label.textContent =
-            theme === 'dark'
-                ? 'Light Mode'
-                : 'Dark Mode';
-
-    }
-
-
-    document
-        .querySelectorAll(
-            '.theme-icon'
-        )
-        .forEach(
-            el => {
-
-                el.textContent =
-                    theme === 'dark'
-                        ? 'light_mode'
-                        : 'dark_mode';
-
-            }
-        );
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| Restore Saved Theme
-|--------------------------------------------------------------------------
-*/
-
-(function () {
-
-    const saved =
-        localStorage.getItem(
-            'theme'
-        );
-
-    if (saved) {
-
-        document.documentElement
-            .setAttribute(
-                'data-theme',
-                saved
-            );
-
-        updateThemeUI(
-            saved
-        );
-
-    }
-
-})();
 
 
 /*
