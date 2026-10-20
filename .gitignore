@@ -21,9 +21,10 @@ package-lock.json
 test-results/
 playwright-report/
 
-# Environment
+# Environment & Cookies
 .env
 .env.local
+cookies.txt
 
 # Python virtual env
 venv/

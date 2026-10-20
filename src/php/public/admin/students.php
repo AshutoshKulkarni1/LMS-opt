@@ -407,7 +407,7 @@ $tests = $pdo->query("SELECT id, title FROM tests ORDER BY created_at DESC LIMIT
 
 <script>
 // API URL — works on both dev server and XAMPP
-const API_URL = <?= json_encode(php_sapi_name() === 'cli-server' ? '/api' : '/test-platform/src/php/api') ?>;
+const API_URL = '<?= BASE_URL ?>/api';
 
 function openModal(id) { var el = document.getElementById(id); if (!el) return; el.style.display = 'flex'; el.classList.add('open'); }
 function closeModal(id) { var el = document.getElementById(id); if (!el) return; el.classList.remove('open'); el.style.display = 'none'; }

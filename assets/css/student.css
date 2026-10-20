@@ -6402,3 +6402,343 @@ section.analysis-section,
     opacity: 0.65;
     line-height: 1.6;
 }
+
+/* ============================================================
+   MOBILE VIEWPORT OPTIMIZATIONS (Smartphones & Small Tablets)
+   ============================================================ */
+
+/* ─── 1. Viewport & Layout Bounds ─────────────────────────── */
+html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+.dashboard-layout {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+.dashboard-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.dashboard-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.dashboard-content-inner {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-bottom: 84px; /* Space for mobile floating chatbot button */
+}
+
+.student-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* ─── 2. Responsive Breakpoint (<= 768px) ─────────────────── */
+@media (max-width: 768px) {
+    /* Topnav */
+    .dashboard-topnav {
+        padding: 0 14px !important;
+        height: 56px !important;
+        gap: 8px !important;
+    }
+
+    .topnav-brand {
+        font-size: 15px !important;
+        margin-left: 6px !important;
+    }
+
+    .topnav-hamburger {
+        display: flex !important;
+        width: 38px !important;
+        height: 38px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .topnav-right {
+        gap: 6px !important;
+    }
+
+    .topnav-profile-info {
+        display: none !important;
+    }
+
+    /* Content padding */
+    .dashboard-content {
+        padding: 14px 12px !important;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 14px !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
+    }
+
+    .welcome-heading {
+        font-size: 22px !important;
+        line-height: 1.25 !important;
+    }
+
+    .welcome-subtitle {
+        font-size: 14px !important;
+    }
+
+    .welcome-batch {
+        font-size: 13px !important;
+    }
+
+    .date-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        align-self: stretch !important;
+        padding: 12px 14px !important;
+    }
+
+    /* KPI Stats Row — 1 Column on Mobile to prevent card clipping */
+    .stats-row,
+    .stats-row.focus-layout {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 20px !important;
+    }
+
+    .stats-row .stat-card-gradient {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+        padding: 16px 14px !important;
+        border-radius: 16px !important;
+    }
+
+    .stats-row.focus-layout .expandable-card.expanded,
+    .stats-row.focus-layout .expandable-card.side-top,
+    .stats-row.focus-layout .expandable-card.side-bottom {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+    }
+
+    .stat-card-value {
+        font-size: 26px !important;
+    }
+
+    .stat-card-label {
+        font-size: 13px !important;
+    }
+
+    /* Tests Section Header & Toggles */
+    .tests-section-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+    }
+
+    .tests-section-title {
+        font-size: 18px !important;
+    }
+
+    .tests-view-toggle {
+        display: flex !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .view-toggle-btn {
+        flex: 1 !important;
+        justify-content: center !important;
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+    }
+
+    /* Table Wrappers — Smooth Touch Scrolling */
+    .table-wrapper,
+    .analysis-table-wrapper,
+    .results-table-wrapper,
+    .tests-table-view .table-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-radius: 14px !important;
+        box-sizing: border-box !important;
+        scrollbar-width: thin;
+    }
+
+    .data-table,
+    .analysis-table,
+    .results-table {
+        min-width: 520px !important;
+        width: 100% !important;
+    }
+
+    .data-table th,
+    .data-table td,
+    .analysis-table th,
+    .analysis-table td,
+    .results-table th,
+    .results-table td {
+        padding: 12px 14px !important;
+        font-size: 13px !important;
+    }
+
+    /* Cards Grid View */
+    .tests-grid,
+    .my-tests-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+        width: 100% !important;
+    }
+
+    .test-card,
+    .my-test-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 16px !important;
+    }
+
+    /* ─── Test Analysis Specifics ─────────────────────────────── */
+    .analysis-section {
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .analysis-section-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+    }
+
+    .analysis-section-header h2 {
+        font-size: 19px !important;
+        line-height: 1.3 !important;
+    }
+
+    .analysis-section-header p {
+        font-size: 13px !important;
+    }
+
+    .analysis-average {
+        flex-direction: row !important;
+        align-items: baseline !important;
+        gap: 8px !important;
+        align-self: flex-start !important;
+        background: var(--surface-hover, rgba(255, 255, 255, 0.04));
+        padding: 6px 14px !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+    }
+
+    .analysis-average-value {
+        font-size: 22px !important;
+    }
+
+    .analysis-average-label {
+        margin-top: 0 !important;
+        font-size: 12px !important;
+    }
+
+    .analysis-chart-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .analysis-card {
+        padding: 16px !important;
+        border-radius: 16px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .analysis-card-header h3 {
+        font-size: 16px !important;
+    }
+
+    .analysis-card-header p {
+        font-size: 12px !important;
+    }
+
+    .chart-container,
+    .chart-container-small {
+        height: 250px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .analysis-table-card {
+        border-radius: 14px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Results summary cards */
+    .best-result-card {
+        padding: 16px !important;
+        gap: 14px !important;
+        border-radius: 14px !important;
+    }
+
+    .best-result-score {
+        font-size: 26px !important;
+    }
+
+    .best-result-meta {
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+
+    /* Floating Chatbot widget on mobile */
+    .chatbot-fab,
+    #chatbotFab,
+    .chatbot-trigger {
+        bottom: 16px !important;
+        right: 16px !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .chatbot-widget,
+    .chatbot-panel,
+    .chatbot-modal {
+        bottom: 72px !important;
+        right: 12px !important;
+        left: 12px !important;
+        width: auto !important;
+        max-width: calc(100vw - 24px) !important;
+        height: min(500px, calc(100vh - 90px)) !important;
+    }
+}

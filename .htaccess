@@ -5,6 +5,7 @@
 # ─── 1. Security & Protection ──────────────────────────────────────
 # Disable directory indexing and negotiation
 Options -Indexes -MultiViews
+DirectoryIndex index.php src/php/public/index.php
 
 # Block access to hidden files and sensitive directories
 <IfModule mod_rewrite.c>
@@ -36,6 +37,9 @@ Options -Indexes -MultiViews
     RewriteCond %{ENV:REDIRECT_STATUS} 200
     RewriteRule ^ - [L]
 
+    # Support legacy /test-platform/ prefix (rewrite /test-platform/... to /...)
+    RewriteRule ^test-platform/(.*)$ /$1 [L,QSA]
+
     # Pass through static assets and real files directly
     RewriteCond %{REQUEST_URI} ^/(?:assets/|favicon\.ico|robots\.txt) [NC]
     RewriteRule ^ - [L]
@@ -56,9 +60,9 @@ Options -Indexes -MultiViews
     # Clean Dynamic Route: /admin/colleges/{id} -> src/php/public/admin/college_dashboard.php?id={id}
     RewriteRule ^admin/colleges/([0-9]+)/?$ src/php/public/admin/college_dashboard.php?id=$1 [L,QSA]
 
-    # API Clean URLs: /api/{endpoint} -> src/php/api/{endpoint}.php
+    # API URLs: /api/{endpoint} or /api/{endpoint}.php -> src/php/api/{endpoint}.php
     RewriteCond %{DOCUMENT_ROOT}/src/php/api/$1.php -f
-    RewriteRule ^api/([^/]+)/?$ src/php/api/$1.php [L,QSA]
+    RewriteRule ^api/([^/.]+?)(?:\.php)?/?$ src/php/api/$1.php [L,QSA]
 
     # Public Clean URLs: /{route} -> src/php/public/{route}.php
     RewriteCond %{DOCUMENT_ROOT}/src/php/public/$1.php -f

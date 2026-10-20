@@ -39,17 +39,17 @@ define('DB_PASS', env('DB_PASS', ''));
 define('PYTHON_API_URL', env('PYTHON_API_URL', 'http://127.0.0.1:5000'));
 
 /*
- * BASE_URL: URL prefix for all redirects and links.
- * - PHP built-in server (cli-server): empty string — doc root is public/
- * - XAMPP / Apache: '/test-platform/src/php/public'
+ * BASE_URL & ASSETS_URL: URL prefixes for redirects, links, and static assets.
+ * Respects .env / environment variables first.
+ * For clean web roots (Docker / production virtual hosts / cli-server), defaults to '' and '/assets'.
+ * Auto-detects legacy XAMPP subdirectory only if /test-platform is in REQUEST_URI.
  */
-if (php_sapi_name() === 'cli-server' || php_sapi_name() === 'cli') {
-    define('BASE_URL', '');
-    define('ASSETS_URL', '/assets');
-} else {
-    define('BASE_URL', '/test-platform/src/php/public');
-    define('ASSETS_URL', '/test-platform/assets');
-}
+$isSubdirXampp = (php_sapi_name() !== 'cli-server' && php_sapi_name() !== 'cli' && isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/test-platform') === 0);
+$defaultBaseUrl = $isSubdirXampp ? '/test-platform/src/php/public' : '';
+$defaultAssetsUrl = $isSubdirXampp ? '/test-platform/assets' : '/assets';
+
+define('BASE_URL', env('BASE_URL', $defaultBaseUrl));
+define('ASSETS_URL', env('ASSETS_URL', $defaultAssetsUrl));
 
 /**
  * Get PDO database connection.

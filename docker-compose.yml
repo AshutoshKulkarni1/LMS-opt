@@ -1,0 +1,110 @@
+services:
+  # ─── 1. MariaDB Database ────────────────────────────────────
+  mariadb:
+    image: mariadb:10.11
+    container_name: lms_mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret_change_me}
+      MARIADB_DATABASE: ${DB_NAME:-test_platform}
+      MARIADB_USER: ${DOCKER_DB_USER:-lms_user}
+      MARIADB_PASSWORD: ${DB_PASS:-secure_db_password}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    networks:
+      - lms_internal
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root --password=$${MARIADB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ─── 2. Python Flask Analytics Microservice ──────────────────
+  flask:
+    build:
+      context: .
+      dockerfile: docker/flask/Dockerfile
+    container_name: lms_flask
+    restart: unless-stopped
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-test_platform}
+      DB_USER: ${DOCKER_DB_USER:-lms_user}
+      DB_PASS: ${DB_PASS:-secure_db_password}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:4b-nothink}
+      FLASK_DEBUG: "0"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - lms_internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ─── 3. PHP 8.2 + Apache Web Server ─────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: lms_web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8085}:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DB_ENV: production
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-test_platform}
+      DB_USER: ${DOCKER_DB_USER:-lms_user}
+      DB_PASS: ${DB_PASS:-secure_db_password}
+      PYTHON_API_URL: http://flask:5000
+      BASE_URL: ${BASE_URL:-}
+      ASSETS_URL: ${ASSETS_URL:-/assets}
+      MAIL_DRIVER: ${MAIL_DRIVER:-smtp}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Test Platform}
+      MAIL_DEV_MODE: ${MAIL_DEV_MODE:-false}
+    volumes:
+      - ./assets:/var/www/html/assets
+      - ./src:/var/www/html/src
+      - ./.htaccess:/var/www/html/.htaccess
+      - storage_data:/var/www/html/src/php/storage
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      flask:
+        condition: service_healthy
+    networks:
+      - lms_internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  lms_internal:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local
+  storage_data:
+    driver: local

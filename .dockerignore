@@ -1,0 +1,49 @@
+# Git
+.git/
+.gitignore
+
+# Environment & Secrets (NEVER bake into images)
+.env
+.env.*
+!.env.example
+
+# Logs and Caches
+*.log
+*.cache
+src/php/storage/logs/*.log
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python Virtual Environments
+venv/
+.venv/
+
+# Node & Package Managers
+node_modules/
+package-lock.json
+
+# IDE & OS Metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Testing & Performance Benchmark Artifacts
+test-results/
+playwright-report/
+headers_*.json
+baseline_*.json
+post_*.json
+optimized_all.json
+lh_network_debug.json
+strix_runs/
+.gstack/
+.opencode/
+.claude/
+
+# Docker build files not needed inside the web image
+docker/mariadb/

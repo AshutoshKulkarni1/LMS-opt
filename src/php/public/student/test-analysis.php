@@ -424,6 +424,117 @@ $currentPage = 'test-analysis';
         .chart-container-small {
             height: 320px;
         }
+
+        /* ─── Mobile Viewport Optimizations (<= 768px) ─── */
+        @media (max-width: 768px) {
+            .student-main {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            section.analysis-section {
+                margin-top: 20px !important;
+                margin-bottom: 20px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .analysis-section-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+                margin-bottom: 16px !important;
+                width: 100% !important;
+            }
+
+            .analysis-section-header h2 {
+                font-size: 19px !important;
+            }
+
+            .analysis-section-header p {
+                font-size: 13px !important;
+            }
+
+            .analysis-average {
+                flex-direction: row !important;
+                align-items: baseline !important;
+                gap: 8px !important;
+                align-self: flex-start !important;
+                background: var(--surface-hover, rgba(255, 255, 255, 0.04));
+                padding: 6px 14px;
+                border-radius: 10px;
+                border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+            }
+
+            .analysis-average-value {
+                font-size: 22px !important;
+            }
+
+            .analysis-average-label {
+                margin-top: 0 !important;
+                font-size: 12px !important;
+            }
+
+            .analysis-chart-grid {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .analysis-card {
+                padding: 16px !important;
+                border-radius: 14px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+            }
+
+            .analysis-card-header h3 {
+                font-size: 16px !important;
+            }
+
+            .analysis-card-header p {
+                font-size: 12px !important;
+            }
+
+            .chart-container {
+                height: 250px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .chart-container-small {
+                height: 250px !important;
+            }
+
+            .analysis-table-card {
+                border-radius: 14px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .analysis-table-wrapper {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: thin;
+            }
+
+            .analysis-table {
+                min-width: 520px !important;
+                width: 100% !important;
+            }
+
+            .analysis-table th,
+            .analysis-table td {
+                padding: 12px 14px !important;
+                font-size: 13px !important;
+            }
+        }
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>

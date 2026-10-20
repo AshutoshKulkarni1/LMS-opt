@@ -370,8 +370,11 @@ def api_chat():
     try:
         request_data = json.dumps(ollama_payload).encode("utf-8")
 
+        ollama_url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
+        chat_endpoint = f"{ollama_url}/api/chat"
+
         req = urllib.request.Request(
-            "http://127.0.0.1:11434/api/chat",
+            chat_endpoint,
             data=request_data,
             headers={
                 "Content-Type": "application/json",

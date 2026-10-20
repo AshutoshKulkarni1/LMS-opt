@@ -316,7 +316,7 @@ function loadAddCourses() {
     select.innerHTML = '<option value="">Loading...</option>';
     select.disabled = true;
     if (!collegeId) { select.innerHTML = '<option value="">Select College first</option>'; return; }
-    fetch('/test-platform/src/php/api/get_courses.php?college_id=' + collegeId + '&active=1')
+    fetch('<?= BASE_URL ?>/api/get_courses.php?college_id=' + collegeId + '&active=1')
         .then(r => r.json())
         .then(data => {
             select.innerHTML = '<option value="">Select Course</option>';
@@ -332,7 +332,7 @@ function loadEditCourses() {
     select.innerHTML = '<option value="">Loading...</option>';
     select.disabled = true;
     if (!collegeId) { select.innerHTML = '<option value="">Select College first</option>'; return; }
-    fetch('/test-platform/src/php/api/get_courses.php?college_id=' + collegeId)
+    fetch('<?= BASE_URL ?>/api/get_courses.php?college_id=' + collegeId)
         .then(r => r.json())
         .then(data => {
             select.innerHTML = '<option value="">Select Course</option>';
@@ -347,7 +347,7 @@ function editBatch(id, courseId, name, section) {
     document.getElementById('edit_name').value = name;
     document.getElementById('edit_section').value = section || '';
     // Load the college and course for this batch
-    fetch('/test-platform/src/php/api/get_course_college.php?course_id=' + courseId)
+    fetch('<?= BASE_URL ?>/api/get_course_college.php?course_id=' + courseId)
         .then(r => r.json())
         .then(data => {
             document.getElementById('edit_college').value = data.college_id;
