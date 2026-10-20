@@ -51,15 +51,18 @@ function sendMail(string $to, string $subject, string $body): array {
     $user    = defined('SMTP_USERNAME') ? SMTP_USERNAME : '';
     $from    = defined('SMTP_FROM') ? SMTP_FROM : $user;
 
-    logMailDiag('smtp_config_loaded', [
-        'driver'    => $driver,
-        'dev_mode'  => $devMode,
-        'host'      => $host,
-        'port'      => $port,
-        'user'      => maskEmailForLog($user),
-        'from'      => maskEmailForLog($from),
-        'has_pass'  => (!empty(SMTP_PASSWORD) ? 'yes(' . strlen(SMTP_PASSWORD) . 'c)' : 'no'),
-        'to'        => maskEmailForLog($to),
+    $resendKey = defined('RESEND_API_KEY') ? RESEND_API_KEY : '';
+
+    logMailDiag('mail_config_loaded', [
+        'driver'         => $driver,
+        'dev_mode'       => $devMode,
+        'has_resend_key' => (!empty($resendKey) ? 'yes(' . strlen($resendKey) . 'c)' : 'no'),
+        'host'           => $host,
+        'port'           => $port,
+        'user'           => maskEmailForLog($user),
+        'from'           => maskEmailForLog($from),
+        'has_pass'       => (!empty(SMTP_PASSWORD) ? 'yes(' . strlen(SMTP_PASSWORD) . 'c)' : 'no'),
+        'to'             => maskEmailForLog($to),
     ]);
 
     // Dev mode: log to file instead of sending
@@ -75,11 +78,135 @@ function sendMail(string $to, string $subject, string $body): array {
         return ['success' => true, 'dev_mode' => true];
     }
 
+    if ($driver === 'resend') {
+        return sendResendMail($to, $subject, $body);
+    }
+
     if ($driver === 'smtp') {
         return sendSmtpMail($to, $subject, $body);
     }
 
     return sendNativeMail($to, $subject, $body);
+}
+
+/**
+ * Send email via Resend HTTP REST API (POST https://api.resend.com/emails).
+ * Operates over HTTPS (port 443) which is permitted on all cloud platforms
+ * including Railway (where outbound SMTP ports 25, 465, 587 are blocked).
+ */
+function sendResendMail(string $to, string $subject, string $body): array {
+    $apiKey = defined('RESEND_API_KEY') ? trim(RESEND_API_KEY) : '';
+    if (empty($apiKey)) {
+        $msg = 'Resend configuration incomplete: RESEND_API_KEY is not set in environment.';
+        logMailDiag('resend_config_invalid', ['error' => $msg]);
+        return ['success' => false, 'error' => $msg, 'stage' => 'resend_config'];
+    }
+
+    $rawFrom = defined('RESEND_FROM') && !empty(RESEND_FROM) ? RESEND_FROM : 'onboarding@resend.dev';
+    $fromName = defined('RESEND_FROM_NAME') && !empty(RESEND_FROM_NAME) ? RESEND_FROM_NAME : 'Test Platform';
+    $from = str_contains($rawFrom, '<') ? $rawFrom : "$fromName <$rawFrom>";
+
+    $payload = json_encode([
+        'from'    => $from,
+        'to'      => [$to],
+        'subject' => $subject,
+        'html'    => $body,
+    ]);
+
+    logMailDiag('resend_request_started', [
+        'to'   => maskEmailForLog($to),
+        'from' => maskEmailForLog($rawFrom),
+    ]);
+
+    $url = 'https://api.resend.com/emails';
+    $responseBody = false;
+    $statusCode = 0;
+
+    // Option 1: cURL (fast, robust with SSL verification)
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $apiKey,
+                'Content-Type: application/json',
+                'User-Agent: LMS-Mailer/1.0',
+            ],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $responseBody = curl_exec($ch);
+        $statusCode   = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr      = curl_error($ch);
+        curl_close($ch);
+
+        if ($responseBody === false) {
+            logMailDiag('resend_curl_error', ['error' => $curlErr]);
+            return [
+                'success' => false,
+                'error'   => 'Resend network error: ' . ($curlErr ?: 'Unknown cURL error'),
+                'stage'   => 'resend_network',
+            ];
+        }
+    } else {
+        // Option 2: Fallback to stream context / file_get_contents (no cURL extension needed)
+        $ctx = stream_context_create([
+            'http' => [
+                'method'        => 'POST',
+                'header'        => "Authorization: Bearer {$apiKey}\r\n" .
+                                   "Content-Type: application/json\r\n" .
+                                   "User-Agent: LMS-Mailer/1.0\r\n",
+                'content'       => $payload,
+                'timeout'       => 15,
+                'ignore_errors' => true,
+            ],
+            'ssl' => [
+                'verify_peer'      => true,
+                'verify_peer_name' => true,
+            ],
+        ]);
+        $responseBody = @file_get_contents($url, false, $ctx);
+        if (isset($http_response_header[0]) && preg_match('#HTTP/\S+\s+(\d+)#', $http_response_header[0], $m)) {
+            $statusCode = (int)$m[1];
+        }
+        if ($responseBody === false) {
+            $lastErr = error_get_last()['message'] ?? 'Network request failed';
+            logMailDiag('resend_stream_error', ['error' => $lastErr]);
+            return [
+                'success' => false,
+                'error'   => 'Resend network error: ' . $lastErr,
+                'stage'   => 'resend_network',
+            ];
+        }
+    }
+
+    $data = json_decode($responseBody, true) ?: [];
+
+    if ($statusCode >= 200 && $statusCode < 300) {
+        $emailId = $data['id'] ?? 'unknown';
+        logMailDiag('resend_success', [
+            'status' => $statusCode,
+            'id'     => $emailId,
+            'to'     => maskEmailForLog($to),
+        ]);
+        return ['success' => true, 'id' => $emailId];
+    }
+
+    // Resend API returns structured error details e.g. {"statusCode": 422, "message": "...", "name": "validation_error"}
+    $apiMessage = $data['message'] ?? ($responseBody ?: 'Unknown Resend error');
+    logMailDiag('resend_api_failed', [
+        'status' => $statusCode,
+        'error'  => $apiMessage,
+    ]);
+
+    return [
+        'success' => false,
+        'error'   => "Resend API error ({$statusCode}): {$apiMessage}",
+        'stage'   => 'resend_api',
+        'code'    => (string)$statusCode,
+    ];
 }
 
 /**

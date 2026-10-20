@@ -35,10 +35,15 @@
 require_once __DIR__ . '/env.php';
 
 // ─── MAIL DRIVER ──────────────────────────────────────────
-// Options: 'mail' (PHP mail() + sendmail) or 'smtp' (direct SMTP)
+// Options: 'mail' (PHP mail() + sendmail), 'smtp' (direct SMTP), or 'resend' (Resend HTTP API)
 // All values come from the .env file / environment variables.
 // NEVER hardcode credentials here — see .env.example for the template.
 define('MAIL_DRIVER', env('MAIL_DRIVER', 'smtp'));
+
+// ─── RESEND API SETTINGS (used when MAIL_DRIVER = 'resend') ──
+define('RESEND_API_KEY',   env('RESEND_API_KEY', ''));
+define('RESEND_FROM',      env('RESEND_FROM', 'onboarding@resend.dev'));
+define('RESEND_FROM_NAME', env('RESEND_FROM_NAME', 'Test Platform'));
 
 // ─── SMTP SETTINGS (used when MAIL_DRIVER = 'smtp') ──────
 define('SMTP_HOST',     env('SMTP_HOST',     'smtp.gmail.com'));
