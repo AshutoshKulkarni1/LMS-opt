@@ -572,11 +572,13 @@ function calculatePercentage(array $test): ?int
 
                 <?= icon('search', 18) ?>
 
+                <label for="testSearch" class="visually-hidden">Search tests</label>
                 <input
                     type="text"
                     id="testSearch"
                     placeholder="Search tests..."
                     autocomplete="off"
+                    aria-label="Search tests"
                 >
 
             </div>
@@ -584,7 +586,8 @@ function calculatePercentage(array $test): ?int
 
             <div class="my-tests-filter">
 
-                <select id="testStatusFilter">
+                <label for="testStatusFilter" class="visually-hidden">Filter tests by status</label>
+                <select id="testStatusFilter" aria-label="Filter tests by status">
 
                     <option value="all">
                         All Tests
