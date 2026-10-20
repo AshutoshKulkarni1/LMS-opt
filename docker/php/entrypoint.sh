@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# Configure Apache to listen on $PORT if provided by Railway/Render/Cloud
+# Dynamically configure Apache port if provided by Railway/Render ($PORT)
 if [ -n "$PORT" ]; then
     sed -i "s/80/$PORT/g" /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 fi

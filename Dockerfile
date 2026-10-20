@@ -42,20 +42,17 @@ WORKDIR /var/www/html
 # Copy project files into container
 COPY . /var/www/html/
 
-# Copy and configure entrypoint script for dynamic cloud port binding ($PORT)
+# Copy entrypoint script and ensure Unix line endings
 COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
 # Create and configure writable storage directories with www-data ownership
 RUN mkdir -p /var/www/html/src/php/storage/logs \
     && chown -R www-data:www-data /var/www/html/src/php/storage \
     && chmod -R 775 /var/www/html/src/php/storage
 
-# Only the web port is exposed
+# Expose web port
 EXPOSE 80
-
-# Healthcheck to verify Apache is serving requests
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-80}/ || exit 1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
