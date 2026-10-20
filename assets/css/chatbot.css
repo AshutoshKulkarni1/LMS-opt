@@ -35,8 +35,16 @@
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 
-.chatbot-toggle .material-symbols-outlined {
+.chatbot-toggle .material-symbols-outlined,
+.chatbot-toggle .chatbot-icon-svg {
     font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chatbot-icon-svg svg {
+    display: block;
 }
 
 /* Chat window */

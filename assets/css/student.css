@@ -2466,15 +2466,24 @@ tr {
 /* ── Theme Toggle Single Icon ─────────────────────────── */
 /* Single icon approach: JS swaps textContent between 'dark_mode' and 'light_mode'.
    No dual-icon flash because there's only ONE element. */
-.theme-icon.material-symbols-outlined {
+.theme-icon.material-symbols-outlined,
+.theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   font-size: 20px;
   font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
   line-height: 1;
   transition: color var(--ease-fast), filter var(--ease-fast);
   color: var(--gray-50);
 }
-/* Light mode icon color (dark_mode icon) */
-.theme-icon { color: var(--gray-50); }
+.theme-icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
 /* Dark mode icon color (light_mode icon) */
 [data-theme="dark"] .theme-icon { color: #F59E0B; }
 .topnav-icon-btn:hover .theme-icon { color: var(--accent); }

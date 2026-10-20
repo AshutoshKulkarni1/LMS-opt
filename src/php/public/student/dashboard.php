@@ -97,9 +97,8 @@ $currentPage = 'dashboard';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?> | Test Platform</title>
+    <!-- Local Variable Font Preload (Latin Variable WOFF2, ~48KB) -->
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <style>
         @font-face {
             font-family: 'Inter';
@@ -110,9 +109,11 @@ $currentPage = 'dashboard';
             unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
         }
     </style>
+    <!-- Critical Student Stylesheet with cache busting -->
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=swap">
+    <!-- Non-critical Chatbot Stylesheet (deferred to avoid render blocking) -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/chatbot.css') ? filemtime(__DIR__ . '/../../../../assets/css/chatbot.css') : time() ?>" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css"></noscript>
 </head>
 <body>
 <?= iconSprite() ?>
@@ -899,10 +900,13 @@ function toggleTheme() {
     updateThemeUI(newTheme);
 }
 function updateThemeUI(theme) {
+    const isDark = theme === 'dark';
     const label = document.getElementById('themeLabel');
-    if (label) label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    const sunSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    const moonSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>';
     document.querySelectorAll('.theme-icon').forEach(el => {
-        el.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+        el.innerHTML = isDark ? sunSvg : moonSvg;
     });
 }
 // Restore saved theme

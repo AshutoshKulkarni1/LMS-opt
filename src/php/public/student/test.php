@@ -193,9 +193,7 @@ $remaining = max(0, $totalSeconds - $elapsed);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($test['title']) ?> | Test</title>
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
     <style>
         @font-face {
             font-family: 'Inter';
@@ -206,7 +204,6 @@ $remaining = max(0, $totalSeconds - $elapsed);
             unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
         }
     </style>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=swap">
     <style>
         .question-card { transition: border-color 0.2s; }
         .question-card.answered { border-left: 4px solid var(--accent); }

@@ -214,15 +214,7 @@ function calculatePercentage(array $test): ?int
         href="<?= ASSETS_URL ?>/css/student.css"
     >
 
-    <!-- Chatbot stylesheet -->
-    <link
-        rel="stylesheet"
-        href="<?= ASSETS_URL ?>/css/chatbot.css"
-    >
-
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <style>
         @font-face {
             font-family: 'Inter';
@@ -233,7 +225,9 @@ function calculatePercentage(array $test): ?int
             unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
         }
     </style>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=swap">
+    <!-- Non-critical Chatbot Stylesheet (deferred to avoid render blocking) -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/chatbot.css') ? filemtime(__DIR__ . '/../../../../assets/css/chatbot.css') : time() ?>" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="<?= ASSETS_URL ?>/css/chatbot.css"></noscript>
 </head>
 
 <body>
