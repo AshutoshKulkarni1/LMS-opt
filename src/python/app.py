@@ -343,14 +343,69 @@ def api_chat():
     }
 
     system_prompt = (
-        "You are an academic mentor and AI assistant for a student.\n"
-        "Answer the student's question clearly, helpfully, and concisely in 2-3 sentences using the student data provided.\n"
-        "If the data is insufficient, say 'No data available'.\n"
-        "Do not overthink, and do not show any internal reasoning or thinking traces; output only the final direct answer."
+        "You are an academic mentor and AI assistant for a student on this learning portal.\n"
+        "Your purpose is strictly to assist with:\n"
+        "1. Coursework, study concepts, syllabus topics, and exam preparation.\n"
+        "2. Reviewing the student's test submissions, marks, and performance analytics provided below.\n"
+        "3. Portal navigation and test instructions.\n\n"
+        "CRITICAL RULES:\n"
+        "- ONLY answer questions related to academics, studies, coursework, tests, or this learning portal.\n"
+        "- If the student asks about anything unrelated (such as movies, gaming, celebrities, jokes, gossip, recipes, pop culture, politics, or general chit-chat), politely decline by answering:\n"
+        "  'I am your academic mentor assistant. I can only assist you with coursework, test performance, studies, and learning portal questions.'\n"
+        "- Keep answers direct, helpful, and concise (2-4 sentences).\n"
+        "- Do not show internal thinking or reasoning tags; output only the final answer."
     )
 
     user_content = f"Student Academic Data:\n{json.dumps(context, indent=2)}\n\nStudent Question:\n{message}"
 
+    groq_api_key = os.environ.get("GROQ_API_KEY", "").strip()
+
+    # ─── 1. Primary: High-speed Groq Cloud API (Zero laptop burden) ───
+    if groq_api_key:
+        groq_model = os.environ.get("GROQ_MODEL", "qwen/qwen3.8-27b").strip()
+        groq_payload = {
+            "model": groq_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            "temperature": 0.2,
+            "max_tokens": 512
+        }
+
+        try:
+            req = urllib.request.Request(
+                "https://api.groq.com/openai/v1/chat/completions",
+                data=json.dumps(groq_payload).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {groq_api_key}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "LMS-Chatbot/1.0"
+                },
+                method="POST"
+            )
+
+            with urllib.request.urlopen(req, timeout=30) as response:
+                result = json.loads(response.read().decode("utf-8"))
+
+            content = result.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+            ai_response = clean_ai_response(content)
+
+            if not ai_response:
+                ai_response = "I couldn't find enough information in your academic records to answer that question."
+
+            return jsonify({
+                "ok": True,
+                "message": ai_response
+            })
+        except Exception as e:
+            print("GROQ ERROR:", str(e))
+            return jsonify({
+                "ok": False,
+                "error": f"AI service error (Groq): {str(e)}"
+            }), 500
+
+    # ─── 2. Fallback: Local Ollama instance (if GROQ_API_KEY is not set) ───
     ollama_model = os.environ.get("OLLAMA_MODEL", "qwen3:4b-nothink")
 
     ollama_payload = {

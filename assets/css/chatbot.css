@@ -162,6 +162,22 @@
     border: 1px solid #e2e8f0;
 }
 
+.chatbot-message.bot.thinking {
+    font-style: italic;
+    color: #64748b;
+    background: #f1f5f9;
+    border: 1px dashed #cbd5e1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: chatbotPulse 1.4s infinite ease-in-out;
+}
+
+@keyframes chatbotPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
 .chatbot-message.user {
     align-self: flex-end;
 
