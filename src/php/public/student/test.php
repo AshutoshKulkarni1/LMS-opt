@@ -51,7 +51,7 @@ if (isStudent()) {
 }
 
 if ($isStopped) {
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Stopped</title><meta name="description" content="This assessment has been ended by the administrator."><meta name="robots" content="noindex, nofollow"><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Stopped</title><meta name="description" content="This assessment has been ended by the administrator."><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
     echo '<div class="container" style="max-width:600px;margin:80px auto;text-align:center;">';
     echo '<div style="margin-bottom:16px;"><svg width="48" height="48" viewBox="0 0 20 20" fill="#BC2F32"><path d="M4 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4zm2 1v10h8V5H6z"/></svg></div>';
     echo '<h1 style="font-size:1.5rem;margin-bottom:8px;">Test Stopped</h1>';
@@ -62,7 +62,7 @@ if ($isStopped) {
 }
 
 if ($isPaused && !$hasProgress) {
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Paused</title><meta name="description" content="This assessment is temporarily paused by the administrator."><meta name="robots" content="noindex, nofollow"><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Paused</title><meta name="description" content="This assessment is temporarily paused by the administrator."><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
     echo '<div class="container" style="max-width:600px;margin:80px auto;text-align:center;">';
     echo '<div style="margin-bottom:16px;"><svg width="48" height="48" viewBox="0 0 20 20" fill="#826A00"><path d="M5 3a1 1 0 0 0-1 1v12a1 1 0 0 0 2 0V4a1 1 0 0 0-1-1zm10 0a1 1 0 0 0-1 1v12a1 1 0 0 0 2 0V4a1 1 0 0 0-1-1z"/></svg></div>';
     echo '<h1 style="font-size:1.5rem;margin-bottom:8px;">Test Paused</h1>';
@@ -117,7 +117,7 @@ if (($submission['status'] ?? '') === 'submitted' || ($submission['status'] ?? '
     $total = $submission['total_marks'] ?? null;
     $pct = ($isEval && $score !== null && $total > 0) ? round(($score / $total) * 100, 1) : null;
 
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Result</title><meta name="description" content="Submission summary and status for your completed assessment."><meta name="robots" content="noindex, nofollow"><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Result</title><meta name="description" content="Submission summary and status for your completed assessment."><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
     echo '<div class="container" style="max-width:600px;margin:80px auto;text-align:center;">';
     if ($isEval && $pct !== null) {
         $iconColor = $pct >= 40 ? '#0B6A0B' : '#BC2F32';
@@ -147,7 +147,7 @@ if (!isset($_SESSION['guest_token'])) {
     $end = $test['end_time'] ? strtotime($test['end_time']) : 0;
 
     if ($test['status'] !== 'active' || ($start > 0 && $now < $start) || ($end > 0 && $now > $end)) {
-        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Not Available</title><meta name="description" content="This assessment is currently not available for submission."><meta name="robots" content="noindex, nofollow"><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Test Not Available</title><meta name="description" content="This assessment is currently not available for submission."><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
         echo '<div class="container" style="max-width:600px;margin:80px auto;text-align:center;">';
         echo '<div style="margin-bottom:16px;"><svg width="48" height="48" viewBox="0 0 20 20" fill="var(--yellow)"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 1a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm.5 2.5a.5.5 0 0 0-1 0V10a.5.5 0 0 0 .22.42l3 2a.5.5 0 1 0 .56-.84L10.5 9.57V5.5z"/></svg></div>';
         echo '<h1 style="font-size:1.5rem;margin-bottom:8px;">Test is not available right now</h1>';
@@ -164,7 +164,7 @@ $stmt->execute([$testId]);
 $questions = $stmt->fetchAll();
 
 if (empty($questions)) {
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>No Questions</title><meta name="description" content="No questions are currently configured for this assessment."><meta name="robots" content="noindex, nofollow"><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>No Questions</title><meta name="description" content="No questions are currently configured for this assessment."><link rel="stylesheet" href="' . ASSETS_URL . '/css/student.css"></head><body>';
     echo '<div class="container" style="max-width:600px;margin:80px auto;text-align:center;">';
     echo '<h1 style="font-size:1.5rem;">No questions in this test yet.</h1>';
     echo '<a href="dashboard" class="btn btn-primary" style="margin-top:20px;">Back</a>';
@@ -193,7 +193,6 @@ $remaining = max(0, $totalSeconds - $elapsed);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($test['title']) ?> | Test</title>
     <meta name="description" content="Interactive online testing environment for completing scheduled course assessments, multiple-choice questions, and coding challenges.">
-    <meta name="robots" content="noindex, nofollow">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
     <style>

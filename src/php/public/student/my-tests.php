@@ -208,7 +208,6 @@ function calculatePercentage(array $test): ?int
         <?= h($pageTitle) ?> | Test Platform
     </title>
     <meta name="description" content="Browse and launch your assigned assessments, practice exams, and course tests with status indicators and time allocations.">
-    <meta name="robots" content="noindex, nofollow">
 
     <!-- Student stylesheet -->
     <link

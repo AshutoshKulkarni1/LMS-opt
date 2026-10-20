@@ -155,7 +155,6 @@ $pageDescription = $pageDescription ?? ($adminDescriptions[$adminPageKey] ?? 'Ad
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin — <?= h($pageTitle ?? 'Dashboard') ?> | Test Platform</title>
     <meta name="description" content="<?= h($pageDescription) ?>">
-    <meta name="robots" content="noindex, nofollow">
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/MaterialSymbolsOutlined.woff2" as="font" type="font/woff2" crossorigin>
     <style>

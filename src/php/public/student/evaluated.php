@@ -150,7 +150,6 @@ $currentPage = 'results';
         <?= h($pageTitle) ?> | Test Platform
     </title>
     <meta name="description" content="View all completed and evaluated assessments with final scores, grading feedback, and links to in-depth result breakdowns.">
-    <meta name="robots" content="noindex, nofollow">
 
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">

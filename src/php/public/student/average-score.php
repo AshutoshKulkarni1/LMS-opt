@@ -181,7 +181,6 @@ $currentPage = 'analytics';
         <?= h($pageTitle) ?> | Test Platform
     </title>
     <meta name="description" content="Detailed score breakdown and statistical analysis comparing your average assessment marks against course benchmarks.">
-    <meta name="robots" content="noindex, nofollow">
 
     <link rel="preload" href="<?= ASSETS_URL ?>/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/student.css?v=<?= file_exists(__DIR__ . '/../../../../assets/css/student.css') ? filemtime(__DIR__ . '/../../../../assets/css/student.css') : time() ?>">
