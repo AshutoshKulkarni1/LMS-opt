@@ -1,0 +1,12 @@
+{
+  "name": "lms/test-platform",
+  "description": "LMS Student Test and Analysis Platform",
+  "type": "project",
+  "require": {
+    "php": ">=8.2",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-mbstring": "*",
+    "ext-curl": "*"
+  }
+}
