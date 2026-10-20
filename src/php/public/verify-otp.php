@@ -24,6 +24,8 @@ $studentId = (int)$pending['student_id'];
 $email     = (string)$pending['email'];
 $error     = '';
 $success   = '';
+$warning   = $_SESSION['otp_warning'] ?? '';
+unset($_SESSION['otp_warning']);
 
 // Check student record in database
 $studentName = $pending['name'] ?? '';
@@ -164,6 +166,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             <?php endif; ?>
             we sent a 6-digit code to <strong><?= h($email) ?></strong>
         </p>
+
+        <?php if ($warning && !$error): ?>
+            <div class="auth-alert error" style="background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); color: #eab308;">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 1a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm0 9.5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zM10 6a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0v-4A.5.5 0 0 1 10 6z"/></svg>
+                <span><?= h($warning) ?></span>
+            </div>
+        <?php endif; ?>
 
         <?php if ($error): ?>
             <div class="auth-alert error">

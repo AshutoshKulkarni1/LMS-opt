@@ -64,9 +64,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'attempts'     => 0,
                     'last_sent_at' => time(),
                 ];
+                if (empty($result['otp_sent'])) {
+                    $_SESSION['otp_warning'] = 'Your account was registered, but the verification email could not be sent immediately (' . ($result['mail_error'] ?? 'mail delivery error') . '). Please click "Resend OTP" below.';
+                }
                 redirect('/verify-otp');
             } else {
                 $error = $result['error'];
+                if (!empty($result['unverified']) && !empty($result['student_id'])) {
+                    $_SESSION['pending_verification'] = [
+                        'student_id'   => (int)$result['student_id'],
+                        'email'        => trim($_POST['email']),
+                        'name'         => $result['student_name'] ?? trim($_POST['name']),
+                        'attempts'     => 0,
+                        'last_sent_at' => 0,
+                    ];
+                    $hasUnverifiedAccount = true;
+                }
             }
         }
     }
@@ -134,7 +147,11 @@ try {
         <?php if ($error): ?>
             <div class="auth-alert error">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 1a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm0 9.5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zM10 6a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0v-4A.5.5 0 0 1 10 6z"/></svg>
-                <span><?= h($error) ?></span>
+                <span><?= h($error) ?>
+                    <?php if (!empty($hasUnverifiedAccount)): ?>
+                        <br><a href="<?= BASE_URL ?>/verify-otp" class="text-accent" style="text-decoration:underline;margin-top:6px;display:inline-block;font-weight:600;">Go to Email Verification / Resend OTP &rarr;</a>
+                    <?php endif; ?>
+                </span>
             </div>
         <?php endif; ?>
 

@@ -19,15 +19,20 @@ if (!function_exists('env')) {
      */
     function env(string $key, ?string $default = null): ?string
     {
-        // 1. Real environment variable / getenv (Render, Oracle Cloud, etc.)
+        // 1. Real environment variable / getenv (Railway, Docker, etc.)
         $v = getenv($key);
         if ($v !== false && $v !== '') {
             return $v;
         }
 
-        // 2. Value loaded from .env into $_ENV by load_env_file()
+        // 2. Real environment variable in $_SERVER (injected by Web server / PHP SAPI)
+        if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+            return (string)$_SERVER[$key];
+        }
+
+        // 3. Value loaded from .env into $_ENV by load_env_file()
         if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
-            return $_ENV[$key];
+            return (string)$_ENV[$key];
         }
 
         return $default;

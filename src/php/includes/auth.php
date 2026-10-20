@@ -165,6 +165,15 @@ function generateStudentOtp(int $studentId, string $email, string $name): array 
 
     // Send email
     require_once __DIR__ . '/mailer.php';
+
+    // 2. Verification challenge/token created stage (safe: never logs OTP or OTP hash)
+    error_log(sprintf(
+        "[REG_DIAG][STAGE: challenge_created] student_id=%d email=%s expires_at=%s",
+        $studentId,
+        maskEmailForLog($email),
+        $expiresAt
+    ));
+
     $mailResult = sendOtpEmail($email, $name, $otp);
 
     $result = [
@@ -199,6 +208,7 @@ function invalidateStudentOtp(int $studentId): void {
  */
 function verifyStudentOtp(int $studentId, string $otp): array {
     $pdo = getDB();
+    require_once __DIR__ . '/mailer.php';
 
     // Fetch from unverified_students
     $stmt = $pdo->prepare("SELECT * FROM unverified_students WHERE id = ?");
@@ -206,10 +216,12 @@ function verifyStudentOtp(int $studentId, string $otp): array {
     $student = $stmt->fetch();
 
     if (!$student) {
+        error_log(sprintf("[REG_DIAG][STAGE: verification_result] student_id=%d status=rejected reason=student_not_found", $studentId));
         return ['success' => false, 'error' => 'Student not found or already verified.'];
     }
 
     if (empty($student['otp_hash'])) {
+        error_log(sprintf("[REG_DIAG][STAGE: verification_result] student_id=%d email=%s status=rejected reason=no_otp_requested", $studentId, maskEmailForLog($student['email'])));
         logFailedLogin($student['email'], 'signup_unverified', 'No OTP requested. Please register again.', $student['name']);
         notifyAdmin('student_account', 'Account not completed — no OTP requested',
             $student['name'] . ' (' . $student['email'] . ') registered but never received an OTP.');
@@ -218,6 +230,7 @@ function verifyStudentOtp(int $studentId, string $otp): array {
 
     // Check expiry
     if (strtotime($student['otp_expires_at']) < time()) {
+        error_log(sprintf("[REG_DIAG][STAGE: verification_result] student_id=%d email=%s status=rejected reason=expired", $studentId, maskEmailForLog($student['email'])));
         logFailedLogin($student['email'], 'expired_otp', 'OTP expired.', $student['name']);
         notifyAdmin('student_account', 'Account not completed — OTP expired',
             $student['name'] . ' (' . $student['email'] . ') tried to verify with an expired OTP.',
@@ -225,13 +238,16 @@ function verifyStudentOtp(int $studentId, string $otp): array {
         return ['success' => false, 'error' => 'OTP expired. Request a new one.', 'expired' => true];
     }
 
-    // Verify OTP
+    // Verify OTP (7. Verification result stage)
     if (!password_verify($otp, $student['otp_hash'])) {
+        error_log(sprintf("[REG_DIAG][STAGE: verification_result] student_id=%d email=%s status=rejected reason=wrong_otp", $studentId, maskEmailForLog($student['email'])));
         logFailedLogin($student['email'], 'wrong_otp', 'Invalid OTP entered.', $student['name']);
         notifyAdmin('student_account', 'Wrong OTP entered',
             $student['name'] . ' (' . $student['email'] . ') entered an invalid OTP during verification.');
         return ['success' => false, 'error' => 'Invalid OTP. Please try again.'];
     }
+
+    error_log(sprintf("[REG_DIAG][STAGE: verification_result] student_id=%d email=%s status=accepted", $studentId, maskEmailForLog($student['email'])));
 
     // ─── OTP CORRECT — Move to students table ───
     try {
@@ -287,6 +303,13 @@ function resendStudentOtp(int $studentId): array {
     if (!$student) {
         return ['success' => false, 'error' => 'Student not found or already verified.'];
     }
+
+    require_once __DIR__ . '/mailer.php';
+    error_log(sprintf(
+        "[REG_DIAG][STAGE: resend_otp_request] student_id=%d email=%s",
+        $studentId,
+        maskEmailForLog($student['email'])
+    ));
 
     return generateStudentOtp($studentId, $student['email'], $student['name']);
 }
@@ -380,6 +403,16 @@ function studentLogin(string $email, string $password): array {
  */
 function studentRegister(array $data): array {
     $pdo = getDB();
+    require_once __DIR__ . '/mailer.php';
+
+    // 1. Registration request received stage
+    error_log(sprintf(
+        "[REG_DIAG][STAGE: registration_request] email=%s name_len=%d college_id=%d batch_id=%d",
+        maskEmailForLog($data['email']),
+        strlen($data['name'] ?? ''),
+        (int)($data['college_id'] ?? 0),
+        (int)($data['batch_id'] ?? 0)
+    ));
 
     // Check duplicate email in both tables
     $stmt = $pdo->prepare("SELECT id FROM students WHERE email = ?");
@@ -391,14 +424,21 @@ function studentRegister(array $data): array {
         return ['success' => false, 'error' => 'Email already registered.'];
     }
 
-    $stmt = $pdo->prepare("SELECT id FROM unverified_students WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT id, name FROM unverified_students WHERE email = ?");
     $stmt->execute([$data['email']]);
-    if ($stmt->fetch()) {
+    $existingUnverified = $stmt->fetch();
+    if ($existingUnverified) {
         logFailedLogin($data['email'], 'duplicate_email', 'Email already registered (unverified).');
         notifyAdmin('student_account', 'Signup blocked — verification pending',
             $data['name'] . ' (' . $data['email'] . ') already registered but never completed verification.',
             BASE_URL . '/admin/pending_verifications');
-        return ['success' => false, 'error' => 'Email already registered. Please check your email for the OTP or request a new one.'];
+        return [
+            'success'      => false,
+            'unverified'   => true,
+            'student_id'   => (int)$existingUnverified['id'],
+            'student_name' => $existingUnverified['name'],
+            'error'        => 'An account with this email is pending verification. Please verify your OTP or request a new one.',
+        ];
     }
 
     // Validate batch belongs to course
@@ -470,9 +510,10 @@ function studentRegister(array $data): array {
     }
 
     return [
-        'success'   => true,
-        'student_id'=> $studentId,
-        'otp_sent'  => $otpResult['success'],
+        'success'    => true,
+        'student_id' => $studentId,
+        'otp_sent'   => $otpResult['success'],
+        'mail_error' => $otpResult['error'] ?? null,
     ];
 }
 
