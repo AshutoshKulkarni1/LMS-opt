@@ -51,16 +51,17 @@ services:
       retries: 3
       start_period: 10s
 
-  # ─── 3. PHP 8.2 + Apache Web Server ─────────────────────────
+  # ─── 3. PHP 8.2 CLI Built-in Server (replaces Apache to avoid MPM conflicts) ─
   web:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
+      dockerfile: Dockerfile
     container_name: lms_web
     restart: unless-stopped
     ports:
-      - "${WEB_PORT:-8085}:80"
+      - "${WEB_PORT:-8085}:8080"
     environment:
+      PORT: "8080"
       APP_ENV: ${APP_ENV:-production}
       APP_DEBUG: ${APP_DEBUG:-false}
       DB_ENV: production
@@ -83,7 +84,6 @@ services:
     volumes:
       - ./assets:/var/www/html/assets
       - ./src:/var/www/html/src
-      - ./.htaccess:/var/www/html/.htaccess
       - storage_data:/var/www/html/src/php/storage
     depends_on:
       mariadb:
@@ -93,11 +93,11 @@ services:
     networks:
       - lms_internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: ["CMD-SHELL", "php -r \"$c=@fsockopen('127.0.0.1',8080,$e,$m,3);exit($c?0:1);\""]
       interval: 15s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 10s
 
 networks:
   lms_internal:
